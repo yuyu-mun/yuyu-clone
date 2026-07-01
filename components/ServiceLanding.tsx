@@ -1,7 +1,6 @@
 import type { CSSProperties } from "react";
 import Link from "next/link";
 import CtaBand from "@/components/CtaBand";
-import CtaModal from "@/components/CtaModal";
 import Reveal from "@/components/Reveal";
 import ServiceFx from "@/components/ServiceFx";
 import { ArrowIcon } from "@/components/Icons";
@@ -132,8 +131,7 @@ export default function ServiceLanding({ cfg }: { cfg: ServicePageConfig }) {
             <strong className="svc-subtitle">{cfg.subtitle}</strong>
             <p>{cfg.lead}</p>
             <div className="svc-hero-actions">
-              <Link href="/freeanalysis" className="svc-btn primary">Get free analysis</Link>
-              <Link href="/pricing-plan" className="svc-btn ghost">View pricing plan</Link>
+              <Link href="/pricing-plan" className="svc-btn primary">View pricing plan</Link>
             </div>
           </Reveal>
 
@@ -291,12 +289,11 @@ export default function ServiceLanding({ cfg }: { cfg: ServicePageConfig }) {
       <CtaBand
         title={cfg.ctaTitle}
         sub={cfg.ctaSub}
-        cta="Get free analysis"
-        href="/freeanalysis"
+        cta="View pricing plan"
+        href="/pricing-plan"
         cta2="Message us on WhatsApp"
       />
 
-      <CtaModal />
       <ServiceFx />
     </div>
   );

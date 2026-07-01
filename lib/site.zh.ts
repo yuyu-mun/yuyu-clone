@@ -6,6 +6,7 @@ export const navZh = [
   { label: "短视频服务", href: "/zh/short-video-services" },
   { label: "作品集", href: "/zh/our-portfolio" },
   { label: "价格方案", href: "/pricing-plan" },
+  { label: "文章", href: "/marketing-insight" },
   { label: "联络我们", href: "/zh/contact" },
 ];
 

@@ -48,7 +48,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
             <p className="lead">{post.excerpt}</p>
             <p style={{ color: "var(--gray)" }}>
               This is a recreated layout of the original article on yuyu-creative.com.my. The full
-              piece walks through practical strategy for brands and founders in Malaysia, covering
+              piece walks through practical strategy for brands and clients in Malaysia, covering
               positioning, content planning, distribution across major platforms, and how to measure
               real results from short-form video.
             </p>

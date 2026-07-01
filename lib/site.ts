@@ -4,20 +4,23 @@ export const company = {
   name: "Yuyu Creative",
   legalName: "YUYU CREATIVE SDN. BHD.",
   registration: "202501044828 (1646236K)",
-  tagline: "A Strategic Short Video Partner for Founders and Professionals",
+  tagline: "A Strategic Short Video Partner for Clients and Professionals",
   email: "yuyu@yuyu-creative.my",
   phoneOffice: "+60 3 2181 4325",
   phoneMobile: "+60 12-323 9068",
   whatsapp: "60123239068",
   address: "E-9-4, Block E, Megan Avenue 1, 189 Jalan Tun Razak, 50400 Kuala Lumpur",
   intro:
-    "Yuyu Creative Malaysia is a short video and personal branding company focused on real business results. We help founders, professionals, and brands use short video content to build trust, show expertise, and attract the right clients.",
+    "Yuyu Creative Malaysia is a short video and personal branding company focused on real business results. We help clients, professionals, and brands use short video content to build trust, show expertise, and attract the right clients.",
   social: {
     facebook: "https://facebook.com",
     instagram: "https://instagram.com",
     whatsapp: "https://wa.me/60123239068",
   },
 };
+
+export const whatsappUrl = (message?: string) =>
+  message ? `https://wa.me/${company.whatsapp}?text=${encodeURIComponent(message)}` : company.social.whatsapp;
 
 export type NavItem = {
   label: string;
@@ -45,7 +48,7 @@ export const nav: NavItem[] = [
       {
         label: "IP Building",
         href: "/ip-building",
-        desc: "Turn founders into recognisable personal brands.",
+        desc: "Turn clients into recognisable personal brands.",
       },
       {
         label: "Ads Boosting",
@@ -55,8 +58,8 @@ export const nav: NavItem[] = [
     ],
   },
   { label: "Portfolio", href: "/our-portfolio" },
-  { label: "Marketing Insight", href: "/marketing-insight" },
   { label: "Pricing Plan", href: "/pricing-plan" },
+  { label: "Blog", href: "/marketing-insight" },
   { label: "Contact", href: "/contact" },
 ];
 
@@ -302,7 +305,12 @@ export const plans = [
     price: "RM 5,000",
     cadence: "per month · 10 videos",
     blurb: "Stay consistent every month — we run the whole cycle for you.",
-    cta: { label: "Start this plan", href: "/freeanalysis" },
+    cta: {
+      label: "Start this plan",
+      href: whatsappUrl(
+        "Hi Yuyu Creative, I'm interested in the Personal Brand plan (RM 5,000 per month / 10 videos). Can you share the next steps?"
+      ),
+    },
   },
   {
     variant: "enterprise",
@@ -311,7 +319,10 @@ export const plans = [
     price: "Custom",
     cadence: "scoped to your brief",
     blurb: "A bespoke production scoped around your campaign and team.",
-    cta: { label: "Request a quote", href: "/contact" },
+    cta: {
+      label: "Request a quote",
+      href: whatsappUrl("Hi Yuyu Creative, I'd like to request a quote for Corporate Production. Here is my brief:"),
+    },
   },
 ];
 
@@ -469,7 +480,7 @@ export const faqs = [
     items: [
       {
         q: "What types of clients do you work with?",
-        a: "We partner with founders, business owners, professionals, and brands that want content built on trust and expertise.",
+        a: "We partner with clients, business owners, professionals, and brands that want content built on trust and expertise.",
       },
       {
         q: "How do we start working together for the first time?",

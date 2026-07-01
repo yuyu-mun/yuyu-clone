@@ -4,13 +4,20 @@ import AboutFx from "@/components/AboutFx";
 import CtaBand from "@/components/CtaBand";
 import Reveal from "@/components/Reveal";
 
+type TeamMember = {
+  name: string;
+  role: string;
+  img: string;
+  credentials?: string[];
+};
+
 export const metadata: Metadata = {
   title: "About YuYu | Strategy-Led Short Video Team",
   description:
-    "Meet Yuyu Creative Malaysia, a strategy-led short video team helping founders and brands turn expertise into trusted content.",
+    "Meet Yuyu Creative Malaysia, a strategy-led short video team helping clients and brands turn expertise into trusted content.",
 };
 
-const teamMalaysia = [
+const teamMalaysia: TeamMember[] = [
   {
     name: "Danis Guok",
     role: "Project Manager",
@@ -33,21 +40,33 @@ const teamMalaysia = [
   },
 ];
 
-const teamTaiwan = [
+const teamTaiwan: TeamMember[] = [
   {
     name: "Damon Lin",
     role: "CEO",
     img: "/images/team-damon.webp",
+    credentials: [
+      "Founder and CEO, Yuyu Creative & Motor Island Taiwan",
+      "Motorcycle industry KOL in Taiwan with a combined digital following of 447,000",
+    ],
   },
   {
     name: "Leo",
     role: "COO",
     img: "/images/team-leo.webp",
+    credentials: [
+      "Former Senior Manager, Business Planning and Analysis, Gogoro Taiwan",
+      "Former Senior Project Manager, Tesla Taiwan",
+    ],
   },
   {
     name: "范君達",
     role: "CCO",
     img: "/images/team-fan.webp",
+    credentials: [
+      "Former Strategy Associate Director, Ogilvy Taiwan",
+      "Former Creative Strategy Director, Leo Burnett Taiwan",
+    ],
   },
 ];
 
@@ -56,7 +75,7 @@ const story = [
   {
     marker: "2022 · Taichung",
     title: "Born from a creator's playbook",
-    desc: "Damon Lin — “Boss Damon”, a motorcycle-industry KOL with a 447K following — founded 嶼嶼創意 (YUYU Creative) in Taiwan, turning hard-won creator know-how into a studio built for founders and experts.",
+    desc: "Damon Lin — “Boss Damon”, a motorcycle-industry KOL with a 447K following — founded 嶼嶼創意 (YUYU Creative) in Taiwan, turning hard-won creator know-how into a studio built for clients and experts.",
   },
   {
     marker: "The team",
@@ -71,7 +90,7 @@ const story = [
   {
     marker: "2025 · Kuala Lumpur",
     title: "YUYU comes to Malaysia",
-    desc: "YUYU Creative Sdn. Bhd. opens in KL, adapting the Taiwan system into a local content cycle for Malaysian founders, professionals, and brands.",
+    desc: "YUYU Creative Sdn. Bhd. opens in KL, adapting the Taiwan system into a local content cycle for Malaysian clients, professionals, and brands.",
   },
   {
     marker: "Today",
@@ -248,7 +267,7 @@ export default function AboutPage() {
             <Reveal className="about-section-intro">
               <span className="about-kicker">Our story</span>
               <h2>From Taiwan&apos;s creator-led method to Malaysia&apos;s local studio.</h2>
-              <p>One method, two homes — built in Taiwan, brought close to Malaysian founders.</p>
+              <p>One method, two homes — built in Taiwan, brought close to Malaysian clients.</p>
             </Reveal>
             <Reveal className="about-timeline" delay={1}>
               <span className="about-timeline-line" aria-hidden />
@@ -271,13 +290,12 @@ export default function AboutPage() {
               <h2>Small enough to know the work. Structured enough to run the cycle.</h2>
             </Reveal>
             {crewGroups.map((group, gi) => (
-              <Reveal className="about-crew-group" delay={1} key={group.region}>
+              <Reveal className={`about-crew-group${group.region === "Taiwan HQ" ? " about-crew-group-hq" : ""}`} delay={1} key={group.region}>
                 <div className="about-crew-head">
                   <div>
                     <span className="about-crew-region">{group.region}</span>
                     <p>{group.desc}</p>
                   </div>
-                  <span className="about-crew-count">{String(group.members.length).padStart(2, "0")}</span>
                 </div>
                 <div className="about-crew-grid">
                   {group.members.map((member) => (
@@ -287,6 +305,13 @@ export default function AboutPage() {
                       </div>
                       <h3>{member.name}</h3>
                       <span>{member.role}</span>
+                      {member.credentials && (
+                        <ul className="about-mate-credentials">
+                          {member.credentials.map((credential) => (
+                            <li key={credential}>{credential}</li>
+                          ))}
+                        </ul>
+                      )}
                     </article>
                   ))}
                 </div>
@@ -300,7 +325,7 @@ export default function AboutPage() {
           <div className="ref-shell about-people-head">
             <Reveal className="about-section-intro wide">
               <span className="about-kicker">People around YUYU</span>
-              <h2>Many faces, kept simple. The page should feel alive without becoming a directory.</h2>
+              <h2>Clients and brands shaped by the YUYU method.</h2>
             </Reveal>
           </div>
           <div className="about-image-river" aria-label="Client and creator image gallery">
@@ -341,9 +366,9 @@ export default function AboutPage() {
 
       <CtaBand
         title="Meet the team before we plan your first content cycle."
-        sub="Start with a free analysis. We will map your positioning, proof assets, and first video angles before recommending what to film."
-        cta="Get free brand analysis"
-        href="/freeanalysis"
+        sub="See how the YUYU method turns positioning, production, and editing into a repeatable short-video system."
+        cta="Our services"
+        href="/short-video-services"
         cta2="Message us on WhatsApp"
       />
     </>

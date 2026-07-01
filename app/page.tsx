@@ -1,45 +1,59 @@
 import Link from "next/link";
 import BrandFilm from "@/components/BrandFilm";
 import CtaBand from "@/components/CtaBand";
-import CtaModal from "@/components/CtaModal";
 import DomeGallery from "@/components/DomeGallery";
 import { ArrowIcon } from "@/components/Icons";
 import Reveal from "@/components/Reveal";
 import RotatingText from "@/components/RotatingText";
+import { reelBrands } from "@/lib/reels";
 import { testimonials } from "@/lib/site";
 
 const heroImage = "/images/yuyu-team-2025.jpg";
 
-// Real production stills for the draggable client gallery
-const domeImages = [
-  "case-2", "case-3", "case-4", "case-5", "case-6", "case-7", "case-8",
-  "case-9", "case-10", "case-11", "case-12", "case-13", "case-14", "case-15",
-].map((n) => `/images/${n}.jpg`);
+// Every downloaded reel across all brands, INTERLEAVED round-robin by brand:
+// one reel from each person, then the next from each, and so on. This keeps the
+// same person's reels ~one-brand-count apart in the list, so when tiles are
+// filled sequentially, neighbouring tiles always show different people.
+const brandReels = reelBrands.map((brand) =>
+  brand.reels
+    .filter((reel) => reel.video)
+    .map((reel) => ({ src: reel.video as string, poster: reel.cover, alt: `${brand.name} reel` }))
+);
+const maxReelsPerBrand = Math.max(0, ...brandReels.map((r) => r.length));
+const domeReels: { src: string; poster: string; alt: string }[] = [];
+for (let j = 0; j < maxReelsPerBrand; j++) {
+  for (const reels of brandReels) {
+    if (reels[j]) domeReels.push(reels[j]);
+  }
+}
 
-// Brands and founders we have produced short-form content for
+// Brands and clients we have produced short-form content for.
+// Logos are pre-normalised (trimmed + optically area-matched onto a uniform
+// canvas) so every mark reads at the same visual size — see
+// public/images/partners-normalized.
 const partners = [
-  { name: "犀牛盾 RhinoShield", img: "/images/partners/rhinoshield.png" },
-  { name: "新東陽 Hsin Tung Yang", img: "/images/partners/hsintungyang.jpg", boxed: true },
-  { name: "愛康 Aikang", img: "/images/partners/aikang.png" },
-  { name: "得來素 Deli Vegetarian", img: "/images/partners/deli.png" },
-  { name: "超級數字力 Super Numbers", img: "/images/partners/supernumbers.png" },
-  { name: "汪喵星球 Dog&Cat Star", img: "/images/partners/wangmiao.png" },
-  { name: "淨淨 Jing Jing", img: "/images/partners/jingjing.png" },
-  { name: "布布童鞋 Bubu Kids", img: "/images/partners/bubu.png", boxed: true },
-  { name: "抱抱身心診所 Baobao Clinic", img: "/images/partners/baobao-clinic.png" },
-  { name: "鉅瑋 Juwei", img: "/images/partners/juwei.png" },
-  { name: "怪獸部落 Li&MON", img: "/images/partners/p4.png", boxed: true },
-  { name: "Eagle", img: "/images/partners/p5.png", boxed: true },
-  { name: "K-WAX", img: "/images/partners/p6.png" },
-  { name: "W.RICH", img: "/images/partners/p7.png" },
-  { name: "KOZY", img: "/images/partners/p8.png", boxed: true },
-  { name: "立月初 June 1st", img: "/images/partners/p9.png", boxed: true },
-  { name: "snug 給足呵護", img: "/images/partners/p10.png", boxed: true },
-  { name: "三輪嶼 Motor Island", img: "/images/partners/p11.png" },
-  { name: "顧家醫療 GU+ Medical Group", img: "/images/partners/p12.png" },
-  { name: "惠森復健科診所 Huisen Rehab", img: "/images/partners/p13.png" },
-  { name: "Select 99", img: "/images/partners/p14.png" },
-  { name: "樂檸漢堡 The Freen Burger", img: "/images/partners/p15.png" },
+  { name: "犀牛盾 RhinoShield", img: "/images/partners-normalized/rhinoshield.png" },
+  { name: "新東陽 Hsin Tung Yang", img: "/images/partners-normalized/hsintungyang.png" },
+  { name: "愛康 Aikang", img: "/images/partners-normalized/aikang.png" },
+  { name: "得來素 Deli Vegetarian", img: "/images/partners-normalized/deli.png" },
+  { name: "超級數字力 Super Numbers", img: "/images/partners-normalized/supernumbers.png" },
+  { name: "汪喵星球 Dog&Cat Star", img: "/images/partners-normalized/wangmiao.png" },
+  { name: "淨淨 Jing Jing", img: "/images/partners-normalized/jingjing.png" },
+  { name: "布布童鞋 Bubu Kids", img: "/images/partners-normalized/bubu.png" },
+  { name: "抱抱身心診所 Baobao Clinic", img: "/images/partners-normalized/baobao-clinic.png" },
+  { name: "鉅瑋 Juwei", img: "/images/partners-normalized/juwei.png" },
+  { name: "怪獸部落 Li&MON", img: "/images/partners-normalized/p4.png" },
+  { name: "Eagle", img: "/images/partners-normalized/p5.png" },
+  { name: "K-WAX", img: "/images/partners-normalized/p6.png" },
+  { name: "W.RICH", img: "/images/partners-normalized/p7.png" },
+  { name: "KOZY", img: "/images/partners-normalized/p8.png" },
+  { name: "立月初 June 1st", img: "/images/partners-normalized/p9.png" },
+  { name: "snug 給足呵護", img: "/images/partners-normalized/p10.png" },
+  { name: "三輪嶼 Motor Island", img: "/images/partners-normalized/p11.png" },
+  { name: "顧家醫療 GU+ Medical Group", img: "/images/partners-normalized/p12.png" },
+  { name: "惠森復健科診所 Huisen Rehab", img: "/images/partners-normalized/p13.png" },
+  { name: "Select 99", img: "/images/partners-normalized/p14.png" },
+  { name: "樂檸漢堡 The Freen Burger", img: "/images/partners-normalized/p15.png" },
 ];
 
 // Industry recognition for our short-form work
@@ -85,13 +99,13 @@ export default function HomePage() {
               <RotatingText words={["clients", "fans", "followers", "advocates"]} />
             </h1>
             <p>
-              We help founders, professionals, and brands across Malaysia turn expertise into
+              We help clients, professionals, and brands across Malaysia turn expertise into
               short-form content that earns attention, builds authority, and brings the right people
               to you. Strategy first, trends never.
             </p>
             <div className="ref-actions">
-              <Link href="/freeanalysis" className="ref-btn primary">Get free brand analysis</Link>
-              <Link href="/our-portfolio" className="ref-btn secondary">See our work</Link>
+              <Link href="/short-video-services" className="ref-btn primary">Our services</Link>
+              <Link href="/our-portfolio" className="ref-btn secondary">Our work</Link>
             </div>
           </div>
 
@@ -108,7 +122,7 @@ export default function HomePage() {
             <p>
               People follow and trust people, not logos. A personal brand — or founder IP — puts a
               recognisable face, voice, and point of view on your business, so your expertise becomes
-              something audiences remember and return to. Yuyu Creative helps founders and professionals
+              something audiences remember and return to. Yuyu Creative helps clients and professionals
               across Malaysia build that IP with strategy-led short video: every clip compounds your
               authority, warms up your audience, and drives inbound leads. Instead of renting attention
               from the algorithm one paid campaign at a time, you own a brand that keeps working long
@@ -126,15 +140,15 @@ export default function HomePage() {
           <Reveal className="ref-section-head compact center">
             <h2>Work people remember.</h2>
             <p>
-              Browse real production stills from the founders, professionals, and brands Yuyu Creative
-              has filmed — spanning hardware, healthcare, F&amp;B, retail, and education. Drag the gallery
-              to explore the range of formats and faces we&apos;ve helped become names their audiences
-              recognise, then open the full portfolio for the strategy and results behind each project.
+              Browse autoplaying reel clips from clients, professionals, and brands Yuyu Creative
+              has filmed — spanning healthcare, beauty, automotive, home, pet, finance, and lifestyle.
+              Drag the gallery to explore the range of formats and faces we&apos;ve helped become names
+              their audiences recognise.
             </p>
           </Reveal>
 
           <Reveal delay={2}>
-            <DomeGallery images={domeImages} />
+            <DomeGallery media={domeReels} />
           </Reveal>
 
           <div className="ref-dome-cta">
@@ -149,19 +163,16 @@ export default function HomePage() {
         <div className="ref-shell">
           <Reveal className="ref-section-head compact center">
             <h2>Brands that trust us.</h2>
-            <p>
-              From global names like RhinoShield and Hsin Tung Yang to clinics, restaurants, retail, and
-              education brands, founders across very different industries choose Yuyu Creative for
-              short-form video and personal branding — because a strategy-first approach travels,
-              whatever you sell. These are some of the teams we&apos;ve helped become the name their
-              customers remember.
+            <p className="ref-partners-sub">
+              A strategy-first approach travels, whatever you sell — these are some of the teams
+              we&apos;ve helped become the name their customers remember.
             </p>
           </Reveal>
 
           <Reveal className="ref-partner-grid" delay={2}>
             {partners.map((p) => (
               <img
-                className={`ref-partner-logo${p.boxed ? " boxed" : ""}`}
+                className="ref-partner-logo"
                 src={p.img}
                 alt={p.name}
                 key={p.name}
@@ -215,9 +226,9 @@ export default function HomePage() {
       <section className="ref-section">
         <div className="ref-shell">
           <Reveal className="ref-section-head compact">
-            <h2>What founders say.</h2>
+            <h2>What clients say.</h2>
             <p>
-              Honest feedback from the founders and brands we partner with — once filming wraps and the
+              Honest feedback from the clients and brands we partner with — once filming wraps and the
               numbers are in. High renewal rates, measurable results, and long-term partnerships are why
               clients keep coming back season after season.
             </p>
@@ -242,13 +253,11 @@ export default function HomePage() {
 
       <CtaBand
         title="Ready to build a personal brand people can trust?"
-        sub="Start with a free analysis. We will map your positioning, proof assets, content angles, and first videos worth producing."
-        cta="Get free brand analysis"
-        href="/freeanalysis"
+        sub="Explore the service cycle and see how we turn strategy, filming, editing, and optimisation into consistent short-form content."
+        cta="Our services"
+        href="/short-video-services"
         cta2="Message us on WhatsApp"
       />
-
-      <CtaModal />
     </>
   );
 }

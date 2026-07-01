@@ -3,23 +3,35 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
-const LAT_MIN = -80;
-const LAT_MAX = 80;
+const LAT_MIN = -68;
+const LAT_MAX = 68;
 
-type Tile = { lat: number; lon: number; src: string };
+type GalleryMedia = {
+  src: string;
+  poster?: string;
+  alt?: string;
+};
+type DomeTile = {
+  lat: number;
+  lon: number;
+  media: GalleryMedia;
+};
 
-// Grid density scales down on smaller screens to keep things smooth.
+// Grid density scales down on smaller screens to keep things smooth. `live` is
+// how many tiles are real (decoding) <video> elements — every other tile is a
+// cheap poster image, so we never mount hundreds of simultaneous videos. Live
+// tiles are each given a DISTINCT clip so no video is duplicated on the sphere.
 function gridFor(w: number) {
-  if (w < 640) return { cols: 16, rows: 10 };
-  if (w < 1024) return { cols: 22, rows: 13 };
-  return { cols: 30, rows: 15 };
+  if (w < 640) return { cols: 24, rows: 7, tileScale: 0.8, live: 40 };
+  if (w < 1024) return { cols: 32, rows: 9, tileScale: 0.84, live: 70 };
+  return { cols: 42, rows: 10, tileScale: 0.88, live: 110 };
 }
 
 export default function DomeGallery({
-  images,
+  media,
   href = "/our-portfolio",
 }: {
-  images: string[];
+  media: GalleryMedia[];
   href?: string;
 }) {
   const router = useRouter();
@@ -30,7 +42,8 @@ export default function DomeGallery({
   const drag = useRef<number | null>(null);
   const start = useRef({ x: 0, y: 0 });
   const moved = useRef(false);
-  const [dim, setDim] = useState({ radius: 740, cols: 30, rows: 15 });
+  const visible = useRef(false); // is the dome on screen? gates rotation + playback
+  const [dim, setDim] = useState({ radius: 740, cols: 42, rows: 10, tileScale: 0.88, live: 24 });
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -53,24 +66,60 @@ export default function DomeGallery({
     };
   }, []);
 
-  const { radius, cols, rows } = dim;
+  const { radius, cols, rows, tileScale, live } = dim;
   const segX = 360 / cols;
   const segY = (LAT_MAX - LAT_MIN) / (rows - 1);
   const tan = (d: number) => Math.tan((d * Math.PI) / 180);
-  const tileW = 2 * radius * tan(segX / 2) * 0.96;
-  const tileH = 2 * radius * tan(segY / 2) * 0.96;
-  const poleRows = Math.max(3, Math.round(rows * 0.25));
+  const tileW = 2 * radius * tan(segX / 2) * tileScale;
+  const tileH = tileW * (16 / 9);
 
-  const tiles: Tile[] = [];
+  const mediaPool = media.length ? media : [{ src: "/images/case-2.jpg", alt: "" }];
+  const tiles: DomeTile[] = [];
   let k = 0;
-  for (let r = poleRows; r < rows - poleRows; r++) {
+  for (let r = 0; r < rows; r++) {
     const lat = LAT_MIN + r * segY;
     for (let c = 0; c < cols; c++) {
       const lon = c * segX + (r % 2) * (segX / 2);
-      tiles.push({ lat, lon, src: images[k % images.length] });
+      tiles.push({ lat, lon, media: mediaPool[k % mediaPool.length] });
       k++;
     }
   }
+
+  // A capped, evenly-spread subset of tiles become live videos; the rest stay
+  // poster images. Each tile keeps its own round-robin reel, so a live video is
+  // never sitting next to a poster of the same reel (its duplicate is ~half a
+  // sphere away). Deterministic so SSR and client agree.
+  const liveStep = Math.max(1, Math.floor(tiles.length / live));
+  const liveSet = new Set<number>();
+  for (let i = 0; i < tiles.length && liveSet.size < live; i += liveStep) {
+    liveSet.add(i);
+  }
+  const isLive = (i: number) => liveSet.has(i);
+
+  // Lazy playback: videos use preload="none" and only load + play while the dome
+  // is in view. Scrolling to another section pauses them all, so nothing decodes
+  // off-screen. This also guarantees the visible front videos are playing.
+  useEffect(() => {
+    const scene = sceneRef.current;
+    if (!scene) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        visible.current = entries[0].isIntersecting;
+        const videos = scene.querySelectorAll<HTMLVideoElement>("video");
+        videos.forEach((v) => {
+          if (visible.current) {
+            v.muted = true;
+            void v.play().catch(() => {});
+          } else {
+            v.pause();
+          }
+        });
+      },
+      { threshold: 0.05 }
+    );
+    io.observe(scene);
+    return () => io.disconnect();
+  }, [ready, media]);
 
   useEffect(() => {
     const stage = stageRef.current;
@@ -78,23 +127,24 @@ export default function DomeGallery({
     const apply = () => {
       stage.style.transform = `translateZ(${-radius}px) rotateY(${rot.current.toFixed(2)}deg)`;
     };
+    apply();
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduce) {
-      apply();
-      return;
-    }
+    if (reduce) return;
     let raf = 0;
     const tick = () => {
-      if (drag.current == null) {
-        vel.current += (0.03 - vel.current) * 0.04;
-        rot.current += vel.current;
+      // Skip all rotation work while the dome is scrolled out of view.
+      if (visible.current) {
+        if (drag.current == null) {
+          vel.current += (0.03 - vel.current) * 0.04;
+          rot.current += vel.current;
+        }
+        apply();
       }
-      apply();
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [radius]);
+  }, [radius, ready]);
 
   // horizontal drag only; a press without movement counts as a click
   const onDown = (e: React.PointerEvent) => {
@@ -148,14 +198,30 @@ export default function DomeGallery({
                 transform: `rotateY(${t.lon}deg) rotateX(${-t.lat}deg) translateZ(${radius}px)`,
               }}
             >
-              <img src={t.src} alt="" draggable={false} loading="lazy" decoding="async" />
+              {isLive(i) && t.media.src.endsWith(".mp4") ? (
+                <video
+                  src={t.media.src}
+                  poster={t.media.poster}
+                  aria-label={t.media.alt}
+                  muted
+                  autoPlay
+                  loop
+                  playsInline
+                  preload="none"
+                />
+              ) : (
+                <img
+                  src={t.media.poster || t.media.src}
+                  alt={t.media.alt || ""}
+                  draggable={false}
+                  loading="lazy"
+                  decoding="async"
+                />
+              )}
             </div>
           ))}
         </div>
       </div>
-      <span className="dome-hint" aria-hidden>
-        Drag to explore
-      </span>
     </div>
   );
 }

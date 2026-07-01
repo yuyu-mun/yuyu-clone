@@ -1,8 +1,6 @@
 import type { CSSProperties } from "react";
 import type { Metadata } from "next";
-import Link from "next/link";
 import CtaBand from "@/components/CtaBand";
-import CtaModal from "@/components/CtaModal";
 import Reveal from "@/components/Reveal";
 import ServiceFx from "@/components/ServiceFx";
 import { ctaTitleZh, platformsZh, processZh, promiseZh, servicesZh, strengthsZh } from "@/lib/site.zh";
@@ -47,8 +45,7 @@ export default function ServicesZh() {
             <strong className="svc-subtitle">以策略、镜头语言与剪辑节奏，把专业变成让人记住的内容资产。</strong>
             <p>{promiseZh.body}</p>
             <div className="svc-hero-actions">
-              <Link href="/zh/freeanalysis" className="svc-btn primary">预约免费咨询</Link>
-              <a href="#packages" className="svc-btn ghost">查看制作方案</a>
+              <a href="#packages" className="svc-btn primary">查看制作方案</a>
             </div>
           </Reveal>
 
@@ -198,8 +195,7 @@ export default function ServicesZh() {
         </div>
       </section>
 
-      <CtaBand title={ctaTitleZh} cta="预约免费咨询" href="/zh/freeanalysis" />
-      <CtaModal />
+      <CtaBand title={ctaTitleZh} cta="查看制作方案" href="#packages" />
       <ServiceFx />
     </div>
   );

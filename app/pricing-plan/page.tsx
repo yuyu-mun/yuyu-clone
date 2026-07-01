@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import CountdownTimer from "@/components/CountdownTimer";
 import CtaBand from "@/components/CtaBand";
-import CtaModal from "@/components/CtaModal";
 import Reveal from "@/components/Reveal";
 import { addOns, planFeatures, plans } from "@/lib/site";
 
@@ -38,7 +37,7 @@ const faqs = [
   },
   {
     q: "Can I switch plans later?",
-    a: "Yes. Many founders start with the one-time Starter Shoot, then move up to the monthly Personal Brand plan once they have seen the process work.",
+    a: "Yes. Many clients start with the one-time Starter Shoot, then move up to the monthly Personal Brand plan once they have seen the process work.",
   },
   {
     q: "What is not included?",
@@ -66,14 +65,10 @@ export default function PricingPlanPage() {
         <div className="ref-shell pp-hero-inner">
           <Reveal>
             <span className="pp-eyebrow">Pricing</span>
-            <h1>Plans that grow with your brand.</h1>
+            <h1>Plans for growth.</h1>
             <p>
               Pick a starting point. Every plan runs on the same proven process — move up, down, or
               pause whenever you need to.
-            </p>
-            <p className="pp-trustline">
-              <strong>1,000+</strong> founders served <span>·</span> <strong>960%</strong> renewal
-              rate <span>·</span> <strong>8B+</strong> views produced
             </p>
           </Reveal>
         </div>
@@ -113,9 +108,15 @@ export default function PricingPlanPage() {
                 </div>
 
                 <div className="plan-foot">
-                  <Link href={plan.cta.href} className={ctaClass(plan.variant)}>
-                    {plan.cta.label}
-                  </Link>
+                  {plan.cta.href.startsWith("http") ? (
+                    <a href={plan.cta.href} className={ctaClass(plan.variant)} target="_blank" rel="noreferrer">
+                      {plan.cta.label}
+                    </a>
+                  ) : (
+                    <Link href={plan.cta.href} className={ctaClass(plan.variant)}>
+                      {plan.cta.label}
+                    </Link>
+                  )}
                   <ul className="plan-feat">
                     {planFeatures.map((f) => (
                       <li key={f.label} className={f.has[i] ? "yes" : "no"}>
@@ -151,7 +152,7 @@ export default function PricingPlanPage() {
           <Reveal className="pp-head">
             <span className="pp-eyebrow">FAQ</span>
             <h2>Before you choose.</h2>
-            <p>Not sure which plan fits? A free analysis is the fastest way to find out.</p>
+            <p>Not sure which plan fits? Message us and we will help you choose the right scope.</p>
           </Reveal>
           <Reveal className="pp-faq" delay={1}>
             {faqs.map((f) => (
@@ -169,12 +170,11 @@ export default function PricingPlanPage() {
 
       <CtaBand
         title="Still deciding?"
-        sub="Book a free analysis and we will recommend the right plan for your goals — no pressure."
-        cta="Get free analysis"
+        sub="Pick the starter offer, or message us if you need help choosing the right scope."
+        cta="Claim offer"
+        href="/freeanalysis"
         cta2="Message us on WhatsApp"
       />
-
-      <CtaModal />
     </div>
   );
 }

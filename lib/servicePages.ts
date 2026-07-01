@@ -66,7 +66,7 @@ export const servicePages: Record<string, ServicePageConfig> = {
     accentDeep: "#10307e",
     metaTitle: "Short Video Services | Yuyu Creative Malaysia",
     metaDescription:
-      "Short video services in Malaysia for founders and brands: strategy, scripting, filming, editing, distribution, analytics, and platform-native content across TikTok, Instagram, YouTube, Facebook, and RED.",
+      "Short video services in Malaysia for clients and brands: strategy, scripting, filming, editing, distribution, analytics, and platform-native content across TikTok, Instagram, YouTube, Facebook, and RED.",
     eyebrow: "Short video services",
     title: "Short Video Services",
     subtitle: "A content atelier for brands that need attention to become trust.",
@@ -87,7 +87,7 @@ export const servicePages: Record<string, ServicePageConfig> = {
       heading: "One service page, one clear promise: consistent short videos that build demand.",
       body: [
         "Short-form content works when the whole cycle is connected. A strong idea needs a clean hook, a natural delivery, a sharp edit, a platform-native caption, and a review loop that turns every post into learning.",
-        "Our short video services are designed for Malaysian founders, professionals, clinics, education brands, retailers, property teams, and service businesses that need more than isolated videos. We build the system behind the videos so your audience can keep meeting the same clear point of view, again and again.",
+        "Our short video services are designed for Malaysian clients, professionals, clinics, education brands, retailers, property teams, and service businesses that need more than isolated videos. We build the system behind the videos so your audience can keep meeting the same clear point of view, again and again.",
       ],
     },
     proof: [
@@ -132,7 +132,7 @@ export const servicePages: Record<string, ServicePageConfig> = {
       },
       {
         q: "Who is this service best for?",
-        a: "It is best for founders, professionals, service businesses, clinics, education brands, retailers, and companies that need trust-building content every month.",
+        a: "It is best for clients, professionals, service businesses, clinics, education brands, retailers, and companies that need trust-building content every month.",
       },
       {
         q: "Do you only create videos, or do you plan the content too?",
@@ -239,7 +239,7 @@ export const servicePages: Record<string, ServicePageConfig> = {
     ],
     related: [
       { label: "Short Video Services", href: "/short-video-services", blurb: "Build a monthly content engine around strategy, scripts, filming, and learning." },
-      { label: "IP Building", href: "/ip-building", blurb: "Turn founders into recognisable personal brands." },
+      { label: "IP Building", href: "/ip-building", blurb: "Turn clients into recognisable personal brands." },
       { label: "Ads Boosting", href: "/ads-boosting", blurb: "Amplify your best videos with paid social." },
     ],
     ctaTitle: "Ready to put your brand on camera?",
@@ -261,7 +261,7 @@ export const servicePages: Record<string, ServicePageConfig> = {
     accentDeep: "#165cba",
     metaTitle: "IP Building | Yuyu Creative Malaysia",
     metaDescription:
-      "IP building and personal branding in Malaysia for founders and experts. Build a recognisable on-screen identity, content pillars, signature formats, and trust-led short videos.",
+      "IP building and personal branding in Malaysia for clients and experts. Build a recognisable on-screen identity, content pillars, signature formats, and trust-led short videos.",
     eyebrow: "IP building",
     title: "IP Building",
     subtitle: "Make your expertise feel like a name, a voice, and a world people can return to.",
@@ -331,7 +331,7 @@ export const servicePages: Record<string, ServicePageConfig> = {
       },
       {
         q: "Who should build a founder IP?",
-        a: "Founders, consultants, doctors, coaches, educators, real estate professionals, finance experts, and business owners can benefit when trust in the person affects buying decisions.",
+        a: "Clients, consultants, doctors, coaches, educators, real estate professionals, finance experts, and business owners can benefit when trust in the person affects buying decisions.",
       },
     ],
     related: [

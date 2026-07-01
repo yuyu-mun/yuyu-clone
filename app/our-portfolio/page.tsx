@@ -1,71 +1,97 @@
 import type { Metadata } from "next";
-import Image from "next/image";
-import Link from "next/link";
+import CountUp from "@/components/CountUp";
 import CtaBand from "@/components/CtaBand";
-import { ArrowIcon } from "@/components/Icons";
-import PortfolioReelWall from "@/components/PortfolioReelWall";
-import {
-  getPortfolioCategoryPath,
-  portfolioCategories,
-  portfolioWorks,
-} from "@/lib/portfolio";
+import ReelWall from "@/components/ReelWall";
+import { allTiles, reelBrands, reelCategories } from "@/lib/reels";
 
 export const metadata: Metadata = {
-  title: "Portfolio | Yuyu Creative — A Living Reel Wall",
-  description: "A wall of short-form work by Yuyu Creative, organised by industry.",
+  title: "Portfolio | Yuyu Creative — The Proof Gallery",
+  description: "A blue-and-white portfolio gallery of short-form work by Yuyu Creative, by industry.",
 };
 
 export default function PortfolioPage() {
-  const heroWorks = portfolioWorks.slice(0, 6);
+  const tiles = allTiles(reelBrands);
+  const totalViews = reelBrands.reduce((s, b) => s + (b.views || 0), 0);
+  const totalViewsLabel = `${Math.round(totalViews / 1_000_000)}M+`;
+
+  const metrics = [
+    { value: totalViewsLabel, label: "views" },
+    { value: `${tiles.length}`, label: "reels" },
+    { value: `${reelBrands.length}`, label: "brands" },
+    { value: `${reelCategories.length}`, label: "industries" },
+  ];
 
   return (
     <>
-      <section className="portfolio-hero">
-        <div className="container portfolio-hero-grid">
-          <div className="portfolio-hero-copy">
-            <span className="portfolio-kicker">Portfolio</span>
-            <h1>
-              The reel <span>wall.</span>
-            </h1>
-            <p>Short-form work, by industry.</p>
-            <div className="portfolio-actions">
-              <Link href="#wall" className="portfolio-pill-link primary">
-                Enter <ArrowIcon />
-              </Link>
-              <Link href="/freeanalysis" className="portfolio-pill-link">
-                Talk to us <ArrowIcon />
-              </Link>
-            </div>
-          </div>
-
-          <div className="portfolio-collage" aria-label="Selected portfolio previews">
-            {heroWorks.map((work, index) => (
-              <Link
-                href={getPortfolioCategoryPath(work.categorySlug)}
-                className={`portfolio-collage-tile tile-${index + 1}`}
-                key={work.slug}
+      <section className="pf9-hero">
+        <div className="container pf9-inner">
+          <h1 className="pf9-title">
+            <span className="pf9-w pf9-w--ul">
+              Built to perform,
+              <svg
+                className="pf9-swash"
+                viewBox="0 0 320 24"
+                preserveAspectRatio="none"
+                aria-hidden="true"
               >
-                <Image src={work.thumbnail} alt={work.title} width={360} height={640} priority={index < 2} />
-                <span>{work.client}</span>
-              </Link>
-            ))}
-          </div>
-        </div>
+                <path
+                  d="M6 16 C 92 6 214 6 314 12"
+                  pathLength="1"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="7"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </span>
+            <br />
+            <span className="pf9-dim">
+              not{" "}
+              <span className="pf9-w pf9-w--st">
+                to please.
+                <svg
+                  className="pf9-strike"
+                  viewBox="0 0 360 24"
+                  preserveAspectRatio="none"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M8 13 C 118 8 244 18 352 11"
+                    pathLength="1"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="6"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </span>
+            </span>
+          </h1>
 
-        <div className="portfolio-ribbon" aria-hidden>
-          <div>
-            Reels · Work · Industry · Yuyu · Reels · Work · Industry · Yuyu · Reels · Work ·
-            Industry · Yuyu ·
-          </div>
+          <dl className="pf9-metrics" aria-label="Portfolio metrics">
+            {metrics.map((m) => (
+              <div className="pf9-metric" key={m.label}>
+                <dt className="pf9-metric-num">
+                  <CountUp value={m.value} duration={2000} />
+                </dt>
+                <dd className="pf9-metric-label">{m.label}</dd>
+              </div>
+            ))}
+          </dl>
+
+          <a className="pf9-cta" href="#showcase">
+            Explore the work
+            <span className="pf9-cta-arrow" aria-hidden="true">→</span>
+          </a>
         </div>
       </section>
 
-      <div id="wall" />
-      <PortfolioReelWall categories={portfolioCategories} />
+      <div id="showcase" />
+      <ReelWall />
 
       <CtaBand
-        title="Want yours here?"
-        sub="Let's build the next reel wall."
+        title="Want yours in the gallery?"
+        sub="Let's build the next proof point."
         cta="Book a call"
         cta2="Message us on WhatsApp"
       />

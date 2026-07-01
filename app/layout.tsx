@@ -15,7 +15,7 @@ const dmSans = DM_Sans({
 export const metadata: Metadata = {
   title: "Yuyu Creative | Malaysia Short Video Company for Personal Branding & Business Growth",
   description:
-    "Yuyu Creative Malaysia is a short video and personal branding company focused on real business results. We help founders, professionals, and brands use short video content to build trust, show expertise, and attract the right clients.",
+    "Yuyu Creative Malaysia is a short video and personal branding company focused on real business results. We help clients, professionals, and brands use short video content to build trust, show expertise, and attract the right clients.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
