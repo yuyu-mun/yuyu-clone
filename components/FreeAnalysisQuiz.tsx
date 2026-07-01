@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowIcon, WhatsAppIcon } from "@/components/Icons";
 import { company } from "@/lib/site";
 
@@ -321,22 +321,17 @@ function normalizeMalaysianPhone(value: string) {
   return /^601[0-9]{8,9}$/.test(normalized) ? normalized : null;
 }
 
-const stageItems = [
-  { label: "About you", ids: ["q1", "q2", "q3", "q4"] },
-  { label: "Customers", ids: ["q5", "q6", "q7"] },
-  { label: "Short videos", ids: ["q8", "q8a", "q9", "q10"] },
-  { label: "Now", ids: ["q11", "q12", "q13", "q14"] },
-  { label: "Contact", ids: ["name", "whatsapp"] },
-];
-
 export default function FreeAnalysisQuiz() {
   const [started, setStarted] = useState(false);
+  const [starting, setStarting] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
   const [answers, setAnswers] = useState<Answers>({});
+  const [answerFeedback, setAnswerFeedback] = useState("");
   const [limitMessage, setLimitMessage] = useState("");
   const [phoneError, setPhoneError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+  const questionWrapRef = useRef<HTMLDivElement>(null);
 
   const steps = useMemo(
     () => quizSteps.filter((step) => !step.condition || step.condition(answers)),
@@ -347,14 +342,33 @@ export default function FreeAnalysisQuiz() {
   const activeQuizPosition = currentStep.id.startsWith("q") && currentStep.id !== "q8a"
     ? steps.filter((step) => step.id.startsWith("q") && step.id !== "q8a").findIndex((step) => step.id === currentStep.id) + 1
     : null;
-  const progress = success ? 100 : Math.round(((stepIndex + (started ? 1 : 0)) / steps.length) * 100);
-  const activeStage = stageItems.find((stage) => stage.ids.includes(currentStep?.id))?.label || "Start";
+  const progress = !started ? 0 : success ? 100 : Math.round(((stepIndex + 1) / steps.length) * 100);
   const selectedCount = currentStep?.kind === "multi" ? listAnswer(answers[currentStep.id]).length : 0;
+  const canContinue = currentStep ? hasAnswer(currentStep) && !submitting : false;
+
+  useEffect(() => {
+    setAnswerFeedback("");
+    window.setTimeout(() => {
+      questionWrapRef.current?.scrollTo({ top: 0 });
+    }, 0);
+  }, [currentStep?.id]);
 
   function hasAnswer(step: QuizStep) {
     if (step.optional) return true;
     if (step.kind === "multi") return listAnswer(answers[step.id]).length > 0;
     return textAnswer(answers[step.id]).trim().length > 0;
+  }
+
+  function scrollQuestionToBottom() {
+    window.setTimeout(() => {
+      const panel = questionWrapRef.current;
+      panel?.scrollTo({ top: panel.scrollHeight, behavior: "smooth" });
+    }, 80);
+  }
+
+  function showAnswerFeedback(message: string) {
+    setAnswerFeedback(message);
+    scrollQuestionToBottom();
   }
 
   function chooseSingle(step: QuizStep, option: QuizOption) {
@@ -373,6 +387,7 @@ export default function FreeAnalysisQuiz() {
       }
       return next;
     });
+    showAnswerFeedback(option.other ? "Type below" : "Selected");
   }
 
   function chooseMulti(step: QuizStep, option: QuizOption) {
@@ -387,11 +402,13 @@ export default function FreeAnalysisQuiz() {
         ...prev,
         [step.id]: listAnswer(prev[step.id]).filter((item) => item !== value),
       }));
+      showAnswerFeedback("Updated");
       return;
     }
 
     if (selected.length >= max) {
       setLimitMessage(`You can select up to ${max}.`);
+      showAnswerFeedback("Limit reached");
       return;
     }
 
@@ -400,16 +417,19 @@ export default function FreeAnalysisQuiz() {
       ...prev,
       [step.id]: [...listAnswer(prev[step.id]), value],
     }));
+    showAnswerFeedback(`${selected.length + 1}/${max} selected`);
   }
 
   function setText(step: QuizStep, value: string) {
     setPhoneError("");
+    setAnswerFeedback(value.trim() ? "Ready" : "");
     setAnswers((prev) => ({ ...prev, [step.id]: value }));
   }
 
   function setOtherText(step: QuizStep, value: string) {
     setLimitMessage("");
     setPhoneError("");
+    setAnswerFeedback(value.trim() ? "Ready" : "Type below");
     setAnswers((prev) => ({
       ...prev,
       [`${step.id}Other`]: value,
@@ -422,12 +442,14 @@ export default function FreeAnalysisQuiz() {
     if (!currentStep || !hasAnswer(currentStep)) return;
     setLimitMessage("");
     setPhoneError("");
+    setAnswerFeedback("");
     setStepIndex((index) => Math.min(index + 1, steps.length - 1));
   }
 
   function goBack() {
     setLimitMessage("");
     setPhoneError("");
+    setAnswerFeedback("");
     setStepIndex((index) => Math.max(index - 1, 0));
   }
 
@@ -444,7 +466,7 @@ export default function FreeAnalysisQuiz() {
       acc[key] = key === "whatsapp" ? normalizedPhone : formatAnswer(answers[key]);
       return acc;
     }, {});
-    payload.source = "yuyu-clone/freeanalysis";
+    payload.source = "yuyu-clone/claim-offer";
     payload.submittedAt = new Date().toISOString();
 
     setSubmitting(true);
@@ -464,7 +486,12 @@ export default function FreeAnalysisQuiz() {
 
   function onPrimaryAction() {
     if (!started) {
-      startQuiz();
+      if (starting) return;
+      setStarting(true);
+      window.setTimeout(() => {
+        setStarted(true);
+        setStarting(false);
+      }, 560);
       return;
     }
 
@@ -475,97 +502,52 @@ export default function FreeAnalysisQuiz() {
 
     goNext();
   }
-
-  function startQuiz() {
-    setStarted(true);
-    window.setTimeout(() => {
-      document.getElementById("analysis-quiz")?.scrollIntoView({ block: "center", behavior: "smooth" });
-    }, 0);
-  }
-
-  const canContinue = currentStep ? hasAnswer(currentStep) && !submitting : false;
   const selectedOther = currentStep?.options?.some(
     (option) => option.other && textAnswer(answers[`${currentStep.id}OtherActive`]) === "true",
   );
   const whatsAppHref = `https://api.whatsapp.com/send/?phone=${company.whatsapp}&text=${encodeURIComponent(
-    "Hi! I just completed the short video identity quiz and would love to find out more.",
+    "Hi! I just submitted the claim offer form and would like to follow up.",
   )}`;
 
   return (
     <section className="analysis-page">
       <div className="analysis-shell">
-        <aside className="analysis-brief">
-          <div className="analysis-brand">
-            <img src="/images/logo-white-horizontal.png" alt="Yuyu Creative" />
-            <span>Short video identity quiz</span>
-          </div>
-
-          <div className="analysis-copy">
-            <span className="analysis-kicker">Free Persona Analysis</span>
-            <h1>Find the creator angle your customers should remember.</h1>
-            <p>
-              A guided 5-minute quiz for Malaysian clients and brands. We use your answers to map
-              your strengths, audience angle, and first short-video direction.
-            </p>
-          </div>
-
-          <div className="analysis-proof" aria-label="Quiz details">
-            <span><strong>14</strong> questions</span>
-            <span><strong>5 min</strong> average time</span>
-            <span><strong>RM0</strong> cost</span>
-          </div>
-
-          <div className="analysis-path" aria-label="How it works">
-            <div><span>01</span><p>Answer focused questions about your business and customers.</p></div>
-            <div><span>02</span><p>We map your short-video identity and strongest content angles.</p></div>
-            <div><span>03</span><p>Your analysis is delivered through WhatsApp within 24 hours.</p></div>
-          </div>
-
-          <figure className="analysis-photo">
-            <img src="/images/generated-strategy-workshop.png" alt="Yuyu Creative strategy workshop" />
-          </figure>
-        </aside>
-
-        <div className="analysis-quiz-panel" id="analysis-quiz" aria-live="polite">
+        <div className={`analysis-quiz-panel${started && !success ? " is-questioning" : ""}`} id="analysis-quiz" aria-live="polite">
           <div className="analysis-panel-head">
             <div>
-              <span className="analysis-step-label">{success ? "Complete" : started ? activeStage : "Start"}</span>
-              <strong>{success ? "Analysis request received" : started ? `${progress}% complete` : "Get Free Analysis"}</strong>
+              <span className="analysis-step-label">{success ? "Done" : started ? "Quiz" : "Start"}</span>
+              <strong>{success ? "Submitted" : started ? `${progress}%` : "Free analysis"}</strong>
             </div>
             <span className="analysis-time">About 5 min</span>
           </div>
 
           <div className="analysis-progress" aria-hidden>
-            <span style={{ width: `${started || success ? progress : 0}%` }} />
-          </div>
-
-          <div className="analysis-stage-list" aria-label="Quiz sections">
-            {stageItems.map((stage) => (
-              <span className={stage.label === activeStage ? "is-active" : ""} key={stage.label}>
-                {stage.label}
-              </span>
-            ))}
+            <span style={{ width: `${progress}%` }} />
           </div>
 
           {!started && !success && (
-            <div className="analysis-start">
-              <span className="analysis-step-label">Start Here</span>
-              <h2>Get a sharper short-video starting point before you spend on content.</h2>
-              <p>
-                One question at a time. No email wall. No generic template. Your WhatsApp number is
-                only collected at the end so we can send the analysis.
-              </p>
-              <button type="button" className="analysis-next" onClick={onPrimaryAction}>
-                Start quiz
+            <div className={`analysis-intro${starting ? " is-starting" : ""}`} key="intro">
+              <div className="analysis-intro-visual" aria-hidden="true">
+                <span className="analysis-orbit one" />
+                <span className="analysis-orbit two" />
+                <span className="analysis-spark one" />
+                <span className="analysis-spark two" />
+                <div className="analysis-mini-logo">
+                  <img src="/images/logo-black-vertical.png" alt="" />
+                </div>
+              </div>
+              <h1>Claim your free analysis.</h1>
+              <p>Answer the quiz. We will follow up on WhatsApp.</p>
+              <button type="button" className="analysis-next analysis-start-btn" onClick={onPrimaryAction} disabled={starting}>
+                {starting ? "Starting" : "Start"}
                 <ArrowIcon />
               </button>
             </div>
           )}
 
           {started && !success && currentStep && (
-            <div className="analysis-question-wrap">
+            <div className="analysis-question-wrap" key={currentStep.id} ref={questionWrapRef}>
               <div className="analysis-question-meta">
-                <span className="analysis-step-label">{currentStep.part}</span>
                 {activeQuizPosition ? (
                   <span>
                     Question {activeQuizPosition} of {quizQuestionCount}
@@ -668,6 +650,9 @@ export default function FreeAnalysisQuiz() {
               {phoneError && <p className="analysis-error">{phoneError}</p>}
 
               <div className="analysis-nav">
+                <span className={`analysis-answer-state${canContinue ? " is-ready" : ""}`} aria-live="polite">
+                  {answerFeedback || (canContinue ? "Ready" : "Choose")}
+                </span>
                 <button type="button" className="analysis-back" onClick={goBack} disabled={stepIndex === 0 || submitting}>
                   Back
                 </button>
@@ -677,7 +662,7 @@ export default function FreeAnalysisQuiz() {
                   </button>
                 )}
                 <button type="button" className="analysis-next" onClick={onPrimaryAction} disabled={!canContinue}>
-                  {submitting ? "Submitting..." : stepIndex >= steps.length - 1 ? "Get My Analysis" : "Continue"}
+                  {submitting ? "Submitting..." : stepIndex >= steps.length - 1 ? "Submit and claim offer" : "Continue"}
                   {!submitting && <ArrowIcon />}
                 </button>
               </div>
@@ -685,17 +670,17 @@ export default function FreeAnalysisQuiz() {
           )}
 
           {success && (
-            <div className="analysis-success">
+            <div className="analysis-success" key="success">
               <span className="analysis-check">OK</span>
-              <h2>Quiz submitted.</h2>
+              <h2>Offer request submitted.</h2>
               <p>
-                {textAnswer(answers.name) ? `${textAnswer(answers.name)}, your` : "Your"} short video identity
-                analysis is being generated. Yuyu Creative will send it to your WhatsApp within 24 hours.
+                {textAnswer(answers.name) ? `${textAnswer(answers.name)}, your` : "Your"} answers have
+                been received. Yuyu Creative will follow up on WhatsApp with the best next step.
               </p>
               <div className="analysis-success-steps">
                 <span>Answers received</span>
-                <span>Identity mapped</span>
-                <span>Report sent</span>
+                <span>Scope reviewed</span>
+                <span>WhatsApp follow-up</span>
               </div>
               <a href={whatsAppHref} className="analysis-main-cta" target="_blank" rel="noreferrer">
                 Open WhatsApp

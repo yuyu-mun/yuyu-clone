@@ -173,7 +173,7 @@ export default function PricingPlanPage() {
         sub="Pick the starter offer, or message us if you need help choosing the right scope."
         cta="Claim offer"
         href="/freeanalysis"
-        cta2="Message us on WhatsApp"
+        cta2="WhatsApp us"
       />
     </div>
   );

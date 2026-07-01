@@ -1,15 +1,17 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 function Frame({
   src,
   poster,
   className,
+  active,
 }: {
   src: string;
   poster: string;
   className: string;
+  active: boolean;
 }) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [muted, setMuted] = useState(true);
@@ -27,13 +29,13 @@ function Frame({
     <div className={`ref-film-frame ${className}`}>
       <video
         ref={videoRef}
-        src={src}
+        src={active ? src : undefined}
         poster={poster}
         autoPlay
         muted
         loop
         playsInline
-        preload="auto"
+        preload="none"
       />
       <button
         type="button"
@@ -60,17 +62,44 @@ function Frame({
 }
 
 export default function BrandFilm() {
+  const stageRef = useRef<HTMLDivElement | null>(null);
+  // Only attach the video source once the stage nears the viewport, so the
+  // brand film never downloads during the initial landing-page paint.
+  const [active, setActive] = useState(false);
+
+  useEffect(() => {
+    const stage = stageRef.current;
+    if (!stage) return;
+    if (typeof IntersectionObserver === "undefined") {
+      setActive(true);
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          setActive(true);
+          io.disconnect();
+        }
+      },
+      { rootMargin: "600px 0px" }
+    );
+    io.observe(stage);
+    return () => io.disconnect();
+  }, []);
+
   return (
-    <div className="ref-film-stage">
+    <div className="ref-film-stage" ref={stageRef}>
       <Frame
         className="ref-film-landscape"
         src="/videos/brand-film-desktop.mp4"
         poster="/images/brand-film-poster.jpg"
+        active={active}
       />
       <Frame
         className="ref-film-portrait"
         src="/videos/brand-film-mobile.mp4"
         poster="/images/brand-film-poster-mobile.jpg"
+        active={active}
       />
     </div>
   );

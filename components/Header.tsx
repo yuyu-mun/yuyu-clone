@@ -46,6 +46,19 @@ export default function Header() {
   const isActiveItem = (item: NavItem) => isActiveHref(item.href) || Boolean(item.children?.some((child) => isActiveHref(child.href)));
 
   useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [open]);
+
+  useEffect(() => {
     let raf = 0;
 
     const update = () => {
@@ -189,9 +202,6 @@ export default function Header() {
             </Link>
           );
         })}
-        <Link href={toggleHref} className="mobile-lang" aria-label={languageLabel} title={languageLabel} onClick={() => setOpen(false)}>
-          <LanguageIcon />
-        </Link>
       </div>
     </header>
   );

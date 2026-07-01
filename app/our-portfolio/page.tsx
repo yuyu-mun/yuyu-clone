@@ -93,7 +93,7 @@ export default function PortfolioPage() {
         title="Want yours in the gallery?"
         sub="Let's build the next proof point."
         cta="Book a call"
-        cta2="Message us on WhatsApp"
+        cta2="WhatsApp us"
       />
     </>
   );

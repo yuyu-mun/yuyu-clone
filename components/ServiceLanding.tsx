@@ -291,7 +291,7 @@ export default function ServiceLanding({ cfg }: { cfg: ServicePageConfig }) {
         sub={cfg.ctaSub}
         cta="View pricing plan"
         href="/pricing-plan"
-        cta2="Message us on WhatsApp"
+        cta2="WhatsApp us"
       />
 
       <ServiceFx />

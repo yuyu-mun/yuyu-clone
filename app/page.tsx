@@ -256,7 +256,7 @@ export default function HomePage() {
         sub="Explore the service cycle and see how we turn strategy, filming, editing, and optimisation into consistent short-form content."
         cta="Our services"
         href="/short-video-services"
-        cta2="Message us on WhatsApp"
+        cta2="WhatsApp us"
       />
     </>
   );

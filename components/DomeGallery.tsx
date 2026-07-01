@@ -22,7 +22,7 @@ type DomeTile = {
 // cheap poster image, so we never mount hundreds of simultaneous videos. Live
 // tiles are each given a DISTINCT clip so no video is duplicated on the sphere.
 function gridFor(w: number) {
-  if (w < 640) return { cols: 24, rows: 7, tileScale: 0.8, live: 40 };
+  if (w < 640) return { cols: 24, rows: 7, tileScale: 0.8, live: 18 };
   if (w < 1024) return { cols: 32, rows: 9, tileScale: 0.84, live: 70 };
   return { cols: 42, rows: 10, tileScale: 0.88, live: 110 };
 }
@@ -45,6 +45,10 @@ export default function DomeGallery({
   const visible = useRef(false); // is the dome on screen? gates rotation + playback
   const [dim, setDim] = useState({ radius: 740, cols: 42, rows: 10, tileScale: 0.88, live: 24 });
   const [ready, setReady] = useState(false);
+  // The dome is a heavy, below-the-fold section (dozens of reel videos + poster
+  // images). We don't mount any of that media until the scene scrolls near the
+  // viewport, so it never competes with the hero / above-the-fold load.
+  const [active, setActive] = useState(false);
 
   useEffect(() => {
     let rafA = 0;
@@ -64,6 +68,29 @@ export default function DomeGallery({
       cancelAnimationFrame(rafB);
       window.removeEventListener("resize", measure);
     };
+  }, []);
+
+  // Mount the dome's media only once it scrolls near the viewport, then keep it
+  // mounted. A generous rootMargin preloads it just before it's seen so the
+  // reveal still feels instant, while the landing hero loads unobstructed.
+  useEffect(() => {
+    const scene = sceneRef.current;
+    if (!scene) return;
+    if (typeof IntersectionObserver === "undefined") {
+      setActive(true);
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          setActive(true);
+          io.disconnect();
+        }
+      },
+      { rootMargin: "800px 0px" }
+    );
+    io.observe(scene);
+    return () => io.disconnect();
   }, []);
 
   const { radius, cols, rows, tileScale, live } = dim;
@@ -101,7 +128,7 @@ export default function DomeGallery({
   // off-screen. This also guarantees the visible front videos are playing.
   useEffect(() => {
     const scene = sceneRef.current;
-    if (!scene) return;
+    if (!scene || !active) return;
     const io = new IntersectionObserver(
       (entries) => {
         visible.current = entries[0].isIntersecting;
@@ -119,7 +146,7 @@ export default function DomeGallery({
     );
     io.observe(scene);
     return () => io.disconnect();
-  }, [ready, media]);
+  }, [ready, active]);
 
   useEffect(() => {
     const stage = stageRef.current;
@@ -186,7 +213,7 @@ export default function DomeGallery({
           onClick={onClick}
           style={{ transform: `translateZ(${-radius}px) rotateY(${rot.current.toFixed(2)}deg)` }}
         >
-          {tiles.map((t, i) => (
+          {active && tiles.map((t, i) => (
             <div
               key={i}
               className="dome-tile"

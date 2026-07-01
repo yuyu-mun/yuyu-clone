@@ -369,7 +369,7 @@ export default function AboutPage() {
         sub="See how the YUYU method turns positioning, production, and editing into a repeatable short-video system."
         cta="Our services"
         href="/short-video-services"
-        cta2="Message us on WhatsApp"
+        cta2="WhatsApp us"
       />
     </>
   );

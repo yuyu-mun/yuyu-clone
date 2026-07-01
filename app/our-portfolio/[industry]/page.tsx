@@ -106,7 +106,7 @@ export default async function PortfolioIndustryPage({ params }: IndustryPageProp
         title="Want yours here?"
         sub="Let's build it."
         cta="Book a call"
-        cta2="Message us on WhatsApp"
+        cta2="WhatsApp us"
       />
     </>
   );

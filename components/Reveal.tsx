@@ -36,9 +36,10 @@ export default function Reveal({
           io.disconnect();
         }
       },
-      // threshold 0 = reveal as soon as any part enters; small bottom margin
-      // delays slightly so the entrance animation still reads on scroll.
-      { threshold: 0, rootMargin: "0px 0px -10% 0px" }
+      // Trigger BEFORE the element scrolls into view (bottom margin expands the
+      // root downward) so the entrance animation is already settled by the time
+      // it reaches the reading area — scrolling feels continuous, not "pop-in".
+      { threshold: 0, rootMargin: "0px 0px 15% 0px" }
     );
     io.observe(el);
 
