@@ -56,6 +56,11 @@ export default function DomeGallery({
   // images). We don't mount any of that media until the scene scrolls near the
   // viewport, so it never competes with the hero / above-the-fold load.
   const [active, setActive] = useState(false);
+  // How many tiles may be live <video> right now. Ramps 0 -> `live` over ~1s
+  // after the scene mounts, so the reveal paints as cheap poster images first
+  // and the video streams spin up a few at a time instead of all on one frame
+  // (that simultaneous burst was the first-load hitch).
+  const [liveBudget, setLiveBudget] = useState(0);
 
   useEffect(() => {
     let rafA = 0;
@@ -137,6 +142,32 @@ export default function DomeGallery({
 
   const isLive = (i: number) => liveKeys.has(i);
 
+  // Ramp the live-video budget up gradually once the scene is active. Two
+  // requestAnimationFrames let the poster grid paint before the first video
+  // mounts, then we add a couple of streams every ~120ms until we reach `live`.
+  useEffect(() => {
+    if (!active) return;
+    setLiveBudget(0);
+    let rafA = 0;
+    let rafB = 0;
+    let id = 0;
+    rafA = requestAnimationFrame(() => {
+      rafB = requestAnimationFrame(() => {
+        let n = 0;
+        id = window.setInterval(() => {
+          n += 2;
+          setLiveBudget(Math.min(n, live));
+          if (n >= live) window.clearInterval(id);
+        }, 120);
+      });
+    });
+    return () => {
+      cancelAnimationFrame(rafA);
+      cancelAnimationFrame(rafB);
+      window.clearInterval(id);
+    };
+  }, [active, live]);
+
   // Lazy playback: videos use preload="none" and only load + play while the dome
   // is in view. Scrolling to another section pauses them all, so nothing decodes
   // off-screen. This also guarantees the visible front videos are playing.
@@ -196,6 +227,10 @@ export default function DomeGallery({
   // selection boundary as tiles drift in and out of the front.
   useEffect(() => {
     if (!active || !videoTiles.length) return;
+    if (liveBudget <= 0) {
+      setLiveKeys((prev) => (prev.size ? new Set<number>() : prev));
+      return;
+    }
     const STICKY = 12; // deg of hysteresis for tiles that are already live
     const norm = (a: number) => {
       const x = ((a % 360) + 360) % 360;
@@ -215,7 +250,7 @@ export default function DomeGallery({
           })
           .sort((a, b) => a.d - b.d);
         const next = new Set<number>();
-        for (let n = 0; n < live && n < scored.length; n++) next.add(scored[n].i);
+        for (let n = 0; n < liveBudget && n < scored.length; n++) next.add(scored[n].i);
         if (next.size === prev.size) {
           let same = true;
           next.forEach((x) => {
@@ -229,7 +264,7 @@ export default function DomeGallery({
     recompute();
     const id = window.setInterval(recompute, 180);
     return () => window.clearInterval(id);
-  }, [active, videoTiles, live]);
+  }, [active, videoTiles, liveBudget]);
 
   // horizontal drag only; a press without movement counts as a click
   const onDown = (e: React.PointerEvent) => {
