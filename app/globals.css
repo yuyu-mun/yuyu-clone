@@ -28,7 +28,7 @@
 /* ---------- Free analysis quiz ---------- */
 .qz-page {
   position: relative;
-  min-height: 100svh;
+  min-height: 100dvh;
   padding: calc(var(--header-h) + 30px) 0 40px;
   color: var(--ink);
   overflow: hidden;
@@ -66,7 +66,7 @@
   width: min(720px, 100%);
   margin: 0 auto;
   padding: 0 24px;
-  min-height: calc(100svh - var(--header-h) - 70px);
+  min-height: calc(100dvh - var(--header-h) - 70px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -75,8 +75,8 @@
 .qz-panel {
   position: relative;
   width: 100%;
-  height: min(648px, calc(100svh - var(--header-h) - 70px));
-  max-height: calc(100svh - var(--header-h) - 70px);
+  height: min(648px, calc(100dvh - var(--header-h) - 70px));
+  max-height: calc(100dvh - var(--header-h) - 70px);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -611,12 +611,18 @@
 
 /* ---------- Responsive ---------- */
 @media (max-width: 620px) {
-  .qz-page { padding: calc(var(--header-h) + 16px) 0 22px; }
-  .qz-shell { padding: 0 14px; min-height: calc(100svh - var(--header-h) - 40px); }
+  .qz-page {
+    min-height: calc(100dvh + 92px);
+    padding: calc(var(--header-h) + 14px) 0 calc(24px + env(safe-area-inset-bottom));
+  }
+  .qz-shell {
+    padding: 0 12px;
+    min-height: calc(100dvh - var(--header-h) - 38px);
+  }
   .qz-panel {
-    height: calc(100svh - var(--header-h) - 40px);
-    max-height: calc(100svh - var(--header-h) - 40px);
-    border-radius: 20px;
+    height: calc(100dvh - var(--header-h) - 38px);
+    max-height: calc(100dvh - var(--header-h) - 38px);
+    border-radius: 18px;
   }
   .qz-options { grid-template-columns: 1fr; gap: 10px; }
   .qz-option { min-height: 56px; }
@@ -625,11 +631,13 @@
   .qz-nav { padding: 14px 20px; gap: 10px; }
   .qz-back { flex-shrink: 0; }
   .qz-next { flex: 1; }
-  .qz-intro { padding: 26px 20px; }
-  .qz-intro-logo { width: 100px; }
-  .qz-intro-title { font-size: clamp(2.2rem, 10vw, 3rem); }
-  .qz-intro-desc { font-size: 0.92rem; white-space: normal; }
-  .qz-orb { width: clamp(158px, 40vw, 184px); }
+  .qz-intro { padding: 22px 18px; }
+  .qz-intro-inner { gap: clamp(10px, 1.8vh, 18px); }
+  .qz-intro-logo { width: 92px; }
+  .qz-intro-title { font-size: clamp(2.08rem, 9.4vw, 2.78rem); }
+  .qz-intro-desc { font-size: 0.9rem; white-space: normal; }
+  .qz-orb { width: clamp(142px, 37vw, 172px); }
+  .qz-intro-meta { max-width: min(100%, 22rem); font-size: 0.9rem; line-height: 1.3; }
   .qz-success-steps { flex-direction: column; align-items: stretch; }
 }
 
