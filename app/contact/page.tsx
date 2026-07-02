@@ -12,7 +12,7 @@ const localBusinessJsonLd = {
   "@context": "https://schema.org",
   "@type": "LocalBusiness",
   name: company.legalName,
-  image: "https://yuyu-creative.my/images/case-2.jpg",
+  image: "https://yuyu-creative.com.my/images/yuyu-social-preview.png",
   email: company.email,
   telephone: company.phoneOffice,
   address: {

@@ -113,7 +113,7 @@ export default function ServiceLanding({ cfg, locale = "en" }: { cfg: ServicePag
     serviceType: cfg.schemaType,
     description: cfg.metaDescription,
     keywords: cfg.keywords.join(", "),
-    url: `https://yuyu-creative.my/${locale === "zh" ? "zh/" : ""}${cfg.slug}`,
+    url: `https://yuyu-creative.com.my/${locale === "zh" ? "zh/" : ""}${cfg.slug}`,
     areaServed: "Malaysia",
     provider: {
       "@type": "Organization",

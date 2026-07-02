@@ -16,9 +16,15 @@ const siteTitle = "Yuyu Creative | Malaysia Short Video Company for Personal Bra
 const siteDescription =
   "Yuyu Creative Malaysia is a short video and personal branding company focused on real business results. We help clients, professionals, and brands use short video content to build trust, show expertise, and attract the right clients.";
 const socialImage = "/images/yuyu-social-preview.png";
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  process.env.VERCEL_PROJECT_PRODUCTION_URL ||
+  process.env.VERCEL_URL ||
+  "https://yuyu-creative.com.my";
+const metadataBase = new URL(siteUrl.startsWith("http") ? siteUrl : `https://${siteUrl}`);
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://yuyu-creative.my"),
+  metadataBase,
   applicationName: "Yuyu Creative",
   title: siteTitle,
   description: siteDescription,
@@ -42,6 +48,7 @@ export const metadata: Metadata = {
         url: socialImage,
         width: 1200,
         height: 1200,
+        type: "image/png",
         alt: "Yuyu Creative short video agency Malaysia",
       },
     ],
