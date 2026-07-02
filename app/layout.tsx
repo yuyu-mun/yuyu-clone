@@ -3,7 +3,7 @@ import { DM_Sans } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import FloatingWhatsApp from "@/components/FloatingWhatsApp";
+import FloatingActions from "@/components/FloatingActions";
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
@@ -25,7 +25,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Header />
         <main>{children}</main>
         <Footer />
-        <FloatingWhatsApp />
+        <FloatingActions />
       </body>
     </html>
   );

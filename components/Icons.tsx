@@ -24,6 +24,18 @@ export function WhatsAppIcon() {
   );
 }
 
+export function PortfolioIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <rect x="5" y="5" width="18" height="18" rx="3" />
+      <path d="M8 19l5.2-5.2 3.8 3.8 3-3" />
+      <path d="M19.8 7.2l1.4-2.4 1.4 2.4 2.4 1.4-2.4 1.4-1.4 2.4-1.4-2.4-2.4-1.4 2.4-1.4z" fill="currentColor" stroke="none" />
+      <circle cx="22.8" cy="22.8" r="5" />
+      <path d="M26.5 26.5L30 30" />
+    </svg>
+  );
+}
+
 export function ArrowIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden>
