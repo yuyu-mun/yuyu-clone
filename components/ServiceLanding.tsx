@@ -5,6 +5,7 @@ import Reveal from "@/components/Reveal";
 import ServiceFx from "@/components/ServiceFx";
 import { ArrowIcon } from "@/components/Icons";
 import { company } from "@/lib/site";
+import { absoluteUrl } from "@/lib/siteUrl";
 import type { ServicePageConfig } from "@/lib/servicePages";
 
 const serviceArtwork: Record<string, string> = {
@@ -113,7 +114,7 @@ export default function ServiceLanding({ cfg, locale = "en" }: { cfg: ServicePag
     serviceType: cfg.schemaType,
     description: cfg.metaDescription,
     keywords: cfg.keywords.join(", "),
-    url: `https://yuyu-creative.com.my/${locale === "zh" ? "zh/" : ""}${cfg.slug}`,
+    url: absoluteUrl(`/${locale === "zh" ? "zh/" : ""}${cfg.slug}`),
     areaServed: "Malaysia",
     provider: {
       "@type": "Organization",

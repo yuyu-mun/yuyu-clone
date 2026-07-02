@@ -4,6 +4,7 @@ import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import FloatingActions from "@/components/FloatingActions";
+import { siteUrl } from "@/lib/siteUrl";
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
@@ -16,12 +17,7 @@ const siteTitle = "Yuyu Creative | Malaysia Short Video Company for Personal Bra
 const siteDescription =
   "Yuyu Creative Malaysia is a short video and personal branding company focused on real business results. We help clients, professionals, and brands use short video content to build trust, show expertise, and attract the right clients.";
 const socialImage = "/images/yuyu-social-preview.png";
-const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL ||
-  process.env.VERCEL_PROJECT_PRODUCTION_URL ||
-  process.env.VERCEL_URL ||
-  "https://yuyu-creative.com.my";
-const metadataBase = new URL(siteUrl.startsWith("http") ? siteUrl : `https://${siteUrl}`);
+const metadataBase = new URL(siteUrl);
 
 export const metadata: Metadata = {
   metadataBase,

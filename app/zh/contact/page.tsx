@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { company } from "@/lib/site";
 import ContactExperience from "@/components/ContactExperience";
+import { absoluteUrl } from "@/lib/siteUrl";
 
 export const metadata: Metadata = {
   title: "聯絡嶼嶼創意｜開始你的品牌專案",
@@ -12,7 +13,7 @@ const localBusinessJsonLd = {
   "@context": "https://schema.org",
   "@type": "LocalBusiness",
   name: company.legalName,
-  image: "https://yuyu-creative.com.my/images/yuyu-social-preview.png",
+  image: absoluteUrl("/images/yuyu-social-preview.png"),
   email: company.email,
   telephone: company.phoneOffice,
   address: {
