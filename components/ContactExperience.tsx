@@ -43,7 +43,6 @@ const tel = (n: string) => `tel:${n.replace(/[\s-]/g, "")}`;
 
 const strings = {
   en: {
-    eyebrow: "Get in touch",
     title: "Our details",
     address: "Studio address",
     office: "Office",
@@ -60,7 +59,6 @@ const strings = {
     ariaEmail: (e: string) => `Email ${e}`,
   },
   zh: {
-    eyebrow: "聯絡我們",
     title: "聯絡資訊",
     address: "工作室地址",
     office: "辦公室電話",
@@ -123,7 +121,6 @@ export default function ContactExperience({ locale = "en" }: { locale?: "en" | "
     <section className="cx">
       <div className="container cx-inner">
         <header className="cx-head">
-          <span className="eyebrow">{t.eyebrow}</span>
           <h1 className="cx-title">{t.title}</h1>
         </header>
 
@@ -171,7 +168,7 @@ export default function ContactExperience({ locale = "en" }: { locale?: "en" | "
 
           {/* Draggable map preview */}
           <div className="cx-mapcard">
-            <ContactMap googleMapsUrl={googleMapsUrl} locale={locale} />
+            <ContactMap locale={locale} />
           </div>
         </div>
       </div>
