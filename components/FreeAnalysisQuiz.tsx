@@ -40,7 +40,6 @@ type QuizCopy = {
     description: string;
     startAriaLabel: string;
     orbRingText: string;
-    orbLoading: string;
     orbStart: string;
     meta: ReactNode;
   };
@@ -579,7 +578,6 @@ const quizCopy: Record<Locale, QuizCopy> = {
       description: "Short-video strategy, tailored to your brand.",
       startAriaLabel: "Start the free analysis",
       orbRingText: "KNOW WHAT TO POST · SHORT-VIDEO STRATEGY ·",
-      orbLoading: "Loading",
       orbStart: "Start",
       meta: (
         <>
@@ -632,7 +630,6 @@ const quizCopy: Record<Locale, QuizCopy> = {
       description: "為你的品牌量身打造的短影音策略。",
       startAriaLabel: "開始免費品牌診斷",
       orbRingText: "知道該發什麼 · 短影音策略 ·",
-      orbLoading: "載入中",
       orbStart: "開始",
       meta: (
         <>
@@ -1018,7 +1015,7 @@ export default function FreeAnalysisQuiz({ locale = "en" }: { locale?: Locale })
                     </text>
                   </svg>
                   <span className="qz-orb-core">
-                    <span className="qz-orb-label">{starting ? copy.intro.orbLoading : copy.intro.orbStart}</span>
+                    <span className="qz-orb-label">{copy.intro.orbStart}</span>
                     <span className="qz-orb-arrow" aria-hidden="true"><ArrowIcon /></span>
                   </span>
                 </button>
