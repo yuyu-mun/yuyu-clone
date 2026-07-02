@@ -19,7 +19,7 @@ export default function CtaBand({
       <div className="container">
         <div className="cta-panel">
           <div className="cta-brand" aria-hidden>
-            <img src="/images/logo-black-vertical.png" alt="Yuyu Creative" />
+            <img src="/images/logo-black-vertical.png" alt="Yuyu Creative" width={1367} height={1534} />
           </div>
 
           <div className="cta-body">
