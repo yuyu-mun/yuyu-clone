@@ -2,36 +2,40 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { company } from "@/lib/site";
-import { PortfolioIcon, WhatsAppIcon } from "./Icons";
+import { whatsappUrl } from "@/lib/site";
+import { WhatsAppIcon } from "./Icons";
 
 export default function FloatingActions() {
   const pathname = usePathname() || "/";
   const isZh = pathname === "/zh" || pathname.startsWith("/zh/");
   const portfolioHref = isZh ? "/zh/our-portfolio" : "/our-portfolio";
+  const portfolioLabel = isZh ? "作品集" : "Portfolio";
+  const waLabel = isZh ? "洽詢" : "WhatsApp";
+  const waMessage = isZh
+    ? "你好 Yuyu Creative，我想了解你們的短影音服務，可以分享更多資訊嗎？"
+    : "Hi Yuyu Creative, I'm interested in your short video services. Can you share more details?";
 
   return (
     <div className="fab-stack">
-      <Link
-        className="fab fab-portfolio"
-        href={portfolioHref}
-        aria-label={isZh ? "查看作品集" : "View portfolio"}
-        data-tooltip={isZh ? "作品集" : "Portfolio"}
-      >
-        <span className="fab-ic"><PortfolioIcon /></span>
-        <span className="fab-label">{isZh ? "作品集" : "Portfolio"}</span>
+      <Link className="fab-card fab-card-portfolio" href={portfolioHref} aria-label={portfolioLabel}>
+        <span className="fab-card-ic">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/images/icon-portfolio.png" alt="" width={38} height={38} />
+        </span>
+        <span className="fab-card-label">{portfolioLabel}</span>
       </Link>
 
       <a
-        className="fab fab-wa"
-        href={company.social.whatsapp}
+        className="fab-card fab-card-wa"
+        href={whatsappUrl(waMessage)}
         target="_blank"
         rel="noopener noreferrer"
-        aria-label={isZh ? "WhatsApp 聯絡" : "Chat on WhatsApp"}
-        data-tooltip={isZh ? "WhatsApp 聯絡" : "WhatsApp"}
+        aria-label={waLabel}
       >
-        <span className="fab-ic"><WhatsAppIcon /></span>
-        <span className="fab-label">{isZh ? "聯絡我們" : "WhatsApp"}</span>
+        <span className="fab-card-ic">
+          <WhatsAppIcon />
+        </span>
+        <span className="fab-card-label">{waLabel}</span>
       </a>
     </div>
   );

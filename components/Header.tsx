@@ -5,8 +5,8 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { nav, uiEn, whatsappUrl, type NavItem } from "@/lib/site";
-import { navZh, uiZh } from "@/lib/site.zh";
+import { nav, type NavItem } from "@/lib/site";
+import { navZh } from "@/lib/site.zh";
 
 function LanguageIcon() {
   return (
@@ -21,6 +21,7 @@ export default function Header() {
   const pathname = usePathname() || "/";
   const [open, setOpen] = useState(false);
   const [collapsed, setCollapsed] = useState<string | null>(null);
+  const [mobileExpanded, setMobileExpanded] = useState<string | null>(null);
   const [solid, setSolid] = useState(pathname === "/our-portfolio" || pathname.endsWith("/about-yuyu") ? 1 : 0);
   const isZh = pathname === "/zh" || pathname.startsWith("/zh/");
   const headerSolid = pathname === "/our-portfolio" ? 1 : solid;
@@ -49,6 +50,7 @@ export default function Header() {
 
   useEffect(() => {
     setOpen(false);
+    setMobileExpanded(null);
   }, [pathname]);
 
   useEffect(() => {
@@ -175,28 +177,39 @@ export default function Header() {
         {menu.map((item) => {
           const itemActive = isActiveItem(item);
           return item.children ? (
-            <div className="mobile-group" key={item.label}>
-              <span className="mobile-group-label">{item.label}</span>
-              {item.children.map((child) => {
-                const childActive = isActiveHref(child.href);
-                return (
-                  <Link
-                    key={child.href}
-                    href={child.href}
-                    className={`mobile-sub${childActive ? " active" : ""}`}
-                    aria-current={childActive ? "page" : undefined}
-                    onClick={() => setOpen(false)}
-                  >
-                    {child.label}
-                  </Link>
-                );
-              })}
+            <div className={`mobile-group${mobileExpanded === item.label ? " is-open" : ""}`} key={item.label}>
+              <button
+                type="button"
+                className={`mobile-group-trigger${itemActive ? " active" : ""}`}
+                aria-expanded={mobileExpanded === item.label}
+                onClick={() => setMobileExpanded((current) => (current === item.label ? null : item.label))}
+              >
+                {item.label}
+              </button>
+              {mobileExpanded === item.label && (
+                <div className="mobile-sublist">
+                  {item.children.map((child) => {
+                    const childActive = isActiveHref(child.href);
+                    return (
+                      <Link
+                        key={child.href}
+                        href={child.href}
+                        className={`mobile-sub${childActive ? " active" : ""}`}
+                        aria-current={childActive ? "page" : undefined}
+                        onClick={() => setOpen(false)}
+                      >
+                        {child.label}
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           ) : (
             <Link
               key={item.href}
               href={item.href}
-              className={itemActive ? "active" : undefined}
+              className={`mobile-link${itemActive ? " active" : ""}`}
               aria-current={itemActive ? "page" : undefined}
               onClick={() => setOpen(false)}
             >
@@ -205,24 +218,6 @@ export default function Header() {
           );
         })}
 
-        <div className="mobile-menu-cta">
-          <Link
-            href={isZh ? "/zh/freeanalysis" : "/freeanalysis"}
-            className="btn mobile-cta-primary"
-            onClick={() => setOpen(false)}
-          >
-            {(isZh ? uiZh : uiEn).freeAnalysis}
-          </Link>
-          <a
-            href={whatsappUrl()}
-            className="btn mobile-cta-whatsapp"
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() => setOpen(false)}
-          >
-            WhatsApp
-          </a>
-        </div>
       </div>
     </header>
   );

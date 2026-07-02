@@ -12,10 +12,46 @@ const dmSans = DM_Sans({
   display: "swap",
 });
 
+const siteTitle = "Yuyu Creative | Malaysia Short Video Company for Personal Branding & Business Growth";
+const siteDescription =
+  "Yuyu Creative Malaysia is a short video and personal branding company focused on real business results. We help clients, professionals, and brands use short video content to build trust, show expertise, and attract the right clients.";
+const socialImage = "/images/yuyu-social-preview.png";
+
 export const metadata: Metadata = {
-  title: "Yuyu Creative | Malaysia Short Video Company for Personal Branding & Business Growth",
-  description:
-    "Yuyu Creative Malaysia is a short video and personal branding company focused on real business results. We help clients, professionals, and brands use short video content to build trust, show expertise, and attract the right clients.",
+  metadataBase: new URL("https://yuyu-creative.my"),
+  applicationName: "Yuyu Creative",
+  title: siteTitle,
+  description: siteDescription,
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon.png", type: "image/png", sizes: "64x64" },
+      { url: "/icon.png", type: "image/png", sizes: "512x512" },
+    ],
+    apple: [{ url: "/apple-icon.png", type: "image/png", sizes: "180x180" }],
+  },
+  openGraph: {
+    title: siteTitle,
+    description: siteDescription,
+    url: "/",
+    siteName: "Yuyu Creative",
+    locale: "en_MY",
+    type: "website",
+    images: [
+      {
+        url: socialImage,
+        width: 1200,
+        height: 1200,
+        alt: "Yuyu Creative short video agency Malaysia",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary",
+    title: siteTitle,
+    description: siteDescription,
+    images: [socialImage],
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
