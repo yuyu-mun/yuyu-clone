@@ -12,25 +12,27 @@ export default function FloatingActions() {
 
   return (
     <div className="fab-stack">
+      <Link
+        className="fab fab-portfolio"
+        href={portfolioHref}
+        aria-label={isZh ? "查看作品集" : "View portfolio"}
+        data-tooltip={isZh ? "作品集" : "Portfolio"}
+      >
+        <span className="fab-ic"><PortfolioIcon /></span>
+        <span className="fab-label">{isZh ? "作品集" : "Portfolio"}</span>
+      </Link>
+
       <a
         className="fab fab-wa"
         href={company.social.whatsapp}
         target="_blank"
         rel="noopener noreferrer"
         aria-label={isZh ? "WhatsApp 聯絡" : "Chat on WhatsApp"}
+        data-tooltip={isZh ? "WhatsApp 聯絡" : "WhatsApp"}
       >
         <span className="fab-ic"><WhatsAppIcon /></span>
         <span className="fab-label">{isZh ? "聯絡我們" : "WhatsApp"}</span>
       </a>
-
-      <Link
-        className="fab fab-portfolio"
-        href={portfolioHref}
-        aria-label={isZh ? "查看作品集" : "View portfolio"}
-      >
-        <span className="fab-ic"><PortfolioIcon /></span>
-        <span className="fab-label">{isZh ? "作品集" : "Portfolio"}</span>
-      </Link>
     </div>
   );
 }
