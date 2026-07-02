@@ -331,7 +331,9 @@ export default function FreeAnalysisQuiz() {
   const [phoneError, setPhoneError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [showScrollHint, setShowScrollHint] = useState(false);
   const questionWrapRef = useRef<HTMLDivElement>(null);
+  const advanceTimer = useRef<number | null>(null);
 
   const steps = useMemo(
     () => quizSteps.filter((step) => !step.condition || step.condition(answers)),
@@ -345,13 +347,39 @@ export default function FreeAnalysisQuiz() {
   const progress = !started ? 0 : success ? 100 : Math.round(((stepIndex + 1) / steps.length) * 100);
   const selectedCount = currentStep?.kind === "multi" ? listAnswer(answers[currentStep.id]).length : 0;
   const canContinue = currentStep ? hasAnswer(currentStep) && !submitting : false;
+  const isLastStep = stepIndex >= steps.length - 1;
+  const partLabel = currentStep?.part ?? "";
+
+  function clearAdvanceTimer() {
+    if (advanceTimer.current !== null) {
+      window.clearTimeout(advanceTimer.current);
+      advanceTimer.current = null;
+    }
+  }
+
+  function updateScrollHint() {
+    const el = questionWrapRef.current;
+    if (!el) {
+      setShowScrollHint(false);
+      return;
+    }
+    setShowScrollHint(el.scrollHeight - el.scrollTop - el.clientHeight > 6);
+  }
 
   useEffect(() => {
     setAnswerFeedback("");
+    clearAdvanceTimer();
     window.setTimeout(() => {
       questionWrapRef.current?.scrollTo({ top: 0 });
+      updateScrollHint();
     }, 0);
-  }, [currentStep?.id]);
+    return clearAdvanceTimer;
+  }, [currentStep?.id, started]);
+
+  useEffect(() => {
+    window.addEventListener("resize", updateScrollHint);
+    return () => window.removeEventListener("resize", updateScrollHint);
+  }, []);
 
   function hasAnswer(step: QuizStep) {
     if (step.optional) return true;
@@ -363,6 +391,7 @@ export default function FreeAnalysisQuiz() {
     window.setTimeout(() => {
       const panel = questionWrapRef.current;
       panel?.scrollTo({ top: panel.scrollHeight, behavior: "smooth" });
+      window.setTimeout(updateScrollHint, 360);
     }, 80);
   }
 
@@ -375,6 +404,7 @@ export default function FreeAnalysisQuiz() {
     const value = optionValue(option);
     setLimitMessage("");
     setPhoneError("");
+    clearAdvanceTimer();
     setAnswers((prev) => {
       const next = { ...prev, [step.id]: option.other ? "" : value };
       if (step.id === "q8" && value.startsWith("D.")) delete next.q8a;
@@ -387,15 +417,27 @@ export default function FreeAnalysisQuiz() {
       }
       return next;
     });
-    showAnswerFeedback(option.other ? "Type below" : "Selected");
+
+    if (option.other) {
+      showAnswerFeedback("Type it below");
+      return;
+    }
+
+    // Quizizz-style auto-advance: let the tap land, then glide to the next question.
+    showAnswerFeedback("Nice!");
+    if (!isLastStep) {
+      advanceTimer.current = window.setTimeout(() => {
+        setStepIndex((index) => Math.min(index + 1, steps.length - 1));
+      }, 480);
+    }
   }
 
   function chooseMulti(step: QuizStep, option: QuizOption) {
     const value = optionValue(option);
-    const selected = listAnswer(answers[step.id]);
     const max = step.max || 1;
-
+    const selected = listAnswer(answers[step.id]);
     setPhoneError("");
+
     if (selected.includes(value)) {
       setLimitMessage("");
       setAnswers((prev) => ({
@@ -407,17 +449,19 @@ export default function FreeAnalysisQuiz() {
     }
 
     if (selected.length >= max) {
-      setLimitMessage(`You can select up to ${max}.`);
+      setLimitMessage(`Pick up to ${max} — tap one to swap.`);
       showAnswerFeedback("Limit reached");
       return;
     }
 
     setLimitMessage("");
-    setAnswers((prev) => ({
-      ...prev,
-      [step.id]: [...listAnswer(prev[step.id]), value],
-    }));
-    showAnswerFeedback(`${selected.length + 1}/${max} selected`);
+    // Hard cap inside the updater so back-to-back taps can never exceed `max`.
+    setAnswers((prev) => {
+      const current = listAnswer(prev[step.id]);
+      if (current.includes(value) || current.length >= max) return prev;
+      return { ...prev, [step.id]: [...current, value] };
+    });
+    showAnswerFeedback(`${selected.length + 1}/${max} picked`);
   }
 
   function setText(step: QuizStep, value: string) {
@@ -429,7 +473,7 @@ export default function FreeAnalysisQuiz() {
   function setOtherText(step: QuizStep, value: string) {
     setLimitMessage("");
     setPhoneError("");
-    setAnswerFeedback(value.trim() ? "Ready" : "Type below");
+    setAnswerFeedback(value.trim() ? "Ready" : "Type it below");
     setAnswers((prev) => ({
       ...prev,
       [`${step.id}Other`]: value,
@@ -443,6 +487,7 @@ export default function FreeAnalysisQuiz() {
     setLimitMessage("");
     setPhoneError("");
     setAnswerFeedback("");
+    clearAdvanceTimer();
     setStepIndex((index) => Math.min(index + 1, steps.length - 1));
   }
 
@@ -450,6 +495,7 @@ export default function FreeAnalysisQuiz() {
     setLimitMessage("");
     setPhoneError("");
     setAnswerFeedback("");
+    clearAdvanceTimer();
     setStepIndex((index) => Math.max(index - 1, 0));
   }
 
@@ -510,180 +556,221 @@ export default function FreeAnalysisQuiz() {
   )}`;
 
   return (
-    <section className="analysis-page">
-      <div className="analysis-shell">
-        <div className={`analysis-quiz-panel${started && !success ? " is-questioning" : ""}`} id="analysis-quiz" aria-live="polite">
-          <div className="analysis-panel-head">
-            <div>
-              <span className="analysis-step-label">{success ? "Done" : started ? "Quiz" : "Start"}</span>
-              <strong>{success ? "Submitted" : started ? `${progress}%` : "Free analysis"}</strong>
-            </div>
-            <span className="analysis-time">About 5 min</span>
-          </div>
+    <section className="qz-page">
+      <div className="qz-ambient" aria-hidden="true">
+        <span className="qz-blob b1" />
+        <span className="qz-blob b2" />
+        <span className="qz-blob b3" />
+        <span className="qz-grid" />
+      </div>
 
-          <div className="analysis-progress" aria-hidden>
-            <span style={{ width: `${progress}%` }} />
-          </div>
-
+      <div className="qz-shell">
+        <div
+          className={`qz-panel${started && !success ? " is-playing" : ""}${success ? " is-done" : ""}`}
+          id="analysis-quiz"
+          aria-live="polite"
+        >
+          {/* ---------- Intro ---------- */}
           {!started && !success && (
-            <div className={`analysis-intro${starting ? " is-starting" : ""}`} key="intro">
-              <div className="analysis-intro-visual" aria-hidden="true">
-                <span className="analysis-orbit one" />
-                <span className="analysis-orbit two" />
-                <span className="analysis-spark one" />
-                <span className="analysis-spark two" />
-                <div className="analysis-mini-logo">
-                  <img src="/images/logo-black-vertical.png" alt="" />
-                </div>
+            <div className={`qz-intro${starting ? " is-starting" : ""}`} key="intro">
+              <span className="qz-fx blob1" aria-hidden="true" />
+              <span className="qz-fx blob2" aria-hidden="true" />
+              <span className="qz-fx blob3" aria-hidden="true" />
+              <span className="qz-fx beam" aria-hidden="true" />
+
+              <div className="qz-intro-inner">
+                <img className="qz-intro-logo" src="/images/logo-black-horizontal.png" alt="Yuyu Creative" />
+
+                <h1 className="qz-intro-title">
+                  {["Free", "Brand"].map((w, i) => (
+                    <span className="qz-word" style={{ ["--w" as string]: i }} key={w}>{w}</span>
+                  ))}
+                  <span className="qz-hl">
+                    <span className="qz-word" style={{ ["--w" as string]: 2 }}>Analysis</span>
+                  </span>
+                </h1>
+
+                <p className="qz-intro-desc">Short-video strategy, tailored to your brand.</p>
+
+                <button
+                  type="button"
+                  className="qz-orb"
+                  onClick={onPrimaryAction}
+                  disabled={starting}
+                  aria-label="Start the free analysis"
+                >
+                  <svg className="qz-orb-ring" viewBox="0 0 220 220" aria-hidden="true">
+                    <defs>
+                      <path id="qzCirclePath" d="M110,110 m-84,0 a84,84 0 1,1 168,0 a84,84 0 1,1 -168,0" />
+                    </defs>
+                    <text textLength="527" lengthAdjust="spacing">
+                      <textPath href="#qzCirclePath" startOffset="0">
+                        KNOW WHAT TO POST · SHORT-VIDEO STRATEGY ·
+                      </textPath>
+                    </text>
+                  </svg>
+                  <span className="qz-orb-core">
+                    <span className="qz-orb-label">{starting ? "Loading" : "Start"}</span>
+                    <span className="qz-orb-arrow" aria-hidden="true"><ArrowIcon /></span>
+                  </span>
+                </button>
+
+                <p className="qz-intro-meta">
+                  <b>14</b> questions · <b>5</b> min · reply within <b>24h</b>
+                </p>
               </div>
-              <h1>Claim your free analysis.</h1>
-              <p>Answer the quiz. We will follow up on WhatsApp.</p>
-              <button type="button" className="analysis-next analysis-start-btn" onClick={onPrimaryAction} disabled={starting}>
-                {starting ? "Starting" : "Start"}
-                <ArrowIcon />
-              </button>
             </div>
           )}
 
+          {/* ---------- Playing ---------- */}
           {started && !success && currentStep && (
-            <div className="analysis-question-wrap" key={currentStep.id} ref={questionWrapRef}>
-              <div className="analysis-question-meta">
-                {activeQuizPosition ? (
-                  <span>
-                    Question {activeQuizPosition} of {quizQuestionCount}
-                  </span>
-                ) : (
-                  <span>Contact detail</span>
-                )}
-              </div>
-
-              <h2>{currentStep.question}</h2>
-              <div className="analysis-hint-row">
-                {currentStep.hint && <p className="analysis-hint">{currentStep.hint}</p>}
-                {currentStep.kind === "multi" && (
-                  <span>
-                    {selectedCount} / {currentStep.max} selected
-                  </span>
-                )}
-              </div>
-
-              {(currentStep.kind === "single" || currentStep.kind === "multi") && currentStep.options && (
-                <div className="analysis-options">
-                  {currentStep.options.map((option) => {
-                    const value = optionValue(option);
-                    const selected = currentStep.kind === "multi"
-                      ? listAnswer(answers[currentStep.id]).includes(value)
-                      : option.other
-                        ? textAnswer(answers[`${currentStep.id}OtherActive`]) === "true"
-                        : textAnswer(answers[currentStep.id]) === value;
-
-                    return (
-                      <button
-                        key={value}
-                        type="button"
-                        className={`analysis-option${selected ? " selected" : ""}`}
-                        onClick={() => currentStep.kind === "multi" ? chooseMulti(currentStep, option) : chooseSingle(currentStep, option)}
-                        aria-pressed={selected}
-                      >
-                        <span>{option.key}</span>
-                        <strong>{option.label}</strong>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-
-              {selectedOther && (
-                <div className="analysis-field">
-                  <label className="analysis-field-label" htmlFor={`${currentStep.id}-other`}>
-                    {currentStep.id === "q1" ? "Your industry" : "Your customer type"}
-                  </label>
-                  <input
-                    id={`${currentStep.id}-other`}
-                    className="analysis-input"
-                    type="text"
-                    value={textAnswer(answers[`${currentStep.id}Other`])}
-                    onChange={(event) => setOtherText(currentStep, event.target.value)}
-                    placeholder={currentStep.id === "q1" ? "Example: Event planning" : "Example: Parents buying for kids"}
-                    autoFocus
-                  />
-                </div>
-              )}
-
-              {currentStep.kind === "text" && (
-                <div className="analysis-field">
-                  <label className="analysis-field-label" htmlFor={`${currentStep.id}-field`}>
-                    {currentStep.id === "whatsapp" ? "Malaysian WhatsApp number" : "Your answer"}
-                  </label>
-                  <input
-                    id={`${currentStep.id}-field`}
-                    className="analysis-input"
-                    type={currentStep.id === "whatsapp" ? "tel" : "text"}
-                    value={textAnswer(answers[currentStep.id])}
-                    placeholder={currentStep.placeholder}
-                    onChange={(event) => setText(currentStep, event.target.value)}
-                    onKeyDown={(event) => {
-                      if (event.key === "Enter" && hasAnswer(currentStep)) {
-                        stepIndex >= steps.length - 1 ? void submitQuiz() : goNext();
-                      }
-                    }}
-                  />
-                </div>
-              )}
-
-              {currentStep.kind === "textarea" && (
-                <div className="analysis-field">
-                  <label className="analysis-field-label" htmlFor={`${currentStep.id}-field`}>
-                    Business and offer
-                  </label>
-                  <textarea
-                    id={`${currentStep.id}-field`}
-                    className="analysis-textarea"
-                    value={textAnswer(answers[currentStep.id])}
-                    placeholder={currentStep.placeholder}
-                    onChange={(event) => setText(currentStep, event.target.value)}
-                  />
-                </div>
-              )}
-
-              {limitMessage && <p className="analysis-error">{limitMessage}</p>}
-              {phoneError && <p className="analysis-error">{phoneError}</p>}
-
-              <div className="analysis-nav">
-                <span className={`analysis-answer-state${canContinue ? " is-ready" : ""}`} aria-live="polite">
-                  {answerFeedback || (canContinue ? "Ready" : "Choose")}
+            <>
+              <div className="qz-topbar">
+                <span className="qz-topbar-part">{partLabel}</span>
+                <span className="qz-topbar-count">
+                  {activeQuizPosition ? `Question ${activeQuizPosition} of ${quizQuestionCount}` : "Almost done"}
                 </span>
-                <button type="button" className="analysis-back" onClick={goBack} disabled={stepIndex === 0 || submitting}>
-                  Back
-                </button>
-                {currentStep.optional && (
-                  <button type="button" className="analysis-skip" onClick={goNext}>
-                    Skip
-                  </button>
-                )}
-                <button type="button" className="analysis-next" onClick={onPrimaryAction} disabled={!canContinue}>
-                  {submitting ? "Submitting..." : stepIndex >= steps.length - 1 ? "Submit and claim offer" : "Continue"}
-                  {!submitting && <ArrowIcon />}
-                </button>
               </div>
-            </div>
+              <div className="qz-progress" aria-hidden="true">
+                <span style={{ width: `${progress}%` }} />
+              </div>
+
+              <div className="qz-stage">
+                <div className="qz-scrollwrap">
+                <div className="qz-question" key={currentStep.id} ref={questionWrapRef} onScroll={updateScrollHint}>
+                  <h2 className="qz-q-title">{currentStep.question}</h2>
+                  <div className="qz-q-sub">
+                    {currentStep.hint && <p className="qz-hint">{currentStep.hint}</p>}
+                    {currentStep.kind === "multi" && (
+                      <span className="qz-count-pill">
+                        {selectedCount} / {currentStep.max}
+                      </span>
+                    )}
+                  </div>
+
+                  {(currentStep.kind === "single" || currentStep.kind === "multi") && currentStep.options && (
+                    <div className={`qz-options${currentStep.options.length > 6 ? " is-dense" : ""}`}>
+                      {currentStep.options.map((option, i) => {
+                        const value = optionValue(option);
+                        const selected = currentStep.kind === "multi"
+                          ? listAnswer(answers[currentStep.id]).includes(value)
+                          : option.other
+                            ? textAnswer(answers[`${currentStep.id}OtherActive`]) === "true"
+                            : textAnswer(answers[currentStep.id]) === value;
+
+                        return (
+                          <button
+                            key={value}
+                            type="button"
+                            className={`qz-option${selected ? " selected" : ""}`}
+                            style={{ ["--i" as string]: i }}
+                            onClick={() => currentStep.kind === "multi" ? chooseMulti(currentStep, option) : chooseSingle(currentStep, option)}
+                            aria-pressed={selected}
+                          >
+                            <span className="qz-option-badge" aria-hidden="true">{option.key}</span>
+                            <strong className="qz-option-label">{option.label}</strong>
+                            <span className="qz-option-tick" aria-hidden="true">✓</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {selectedOther && (
+                    <div className="qz-field">
+                      <label className="qz-field-label" htmlFor={`${currentStep.id}-other`}>
+                        {currentStep.id === "q1" ? "Your industry" : "Your customer type"}
+                      </label>
+                      <input
+                        id={`${currentStep.id}-other`}
+                        className="qz-input"
+                        type="text"
+                        value={textAnswer(answers[`${currentStep.id}Other`])}
+                        onChange={(event) => setOtherText(currentStep, event.target.value)}
+                        placeholder={currentStep.id === "q1" ? "Example: Event planning" : "Example: Parents buying for kids"}
+                        autoFocus
+                      />
+                    </div>
+                  )}
+
+                  {currentStep.kind === "text" && (
+                    <div className="qz-field">
+                      <label className="qz-field-label" htmlFor={`${currentStep.id}-field`}>
+                        {currentStep.id === "whatsapp" ? "Malaysian WhatsApp number" : "Your answer"}
+                      </label>
+                      <input
+                        id={`${currentStep.id}-field`}
+                        className="qz-input"
+                        type={currentStep.id === "whatsapp" ? "tel" : "text"}
+                        value={textAnswer(answers[currentStep.id])}
+                        placeholder={currentStep.placeholder}
+                        onChange={(event) => setText(currentStep, event.target.value)}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter" && hasAnswer(currentStep)) {
+                            isLastStep ? void submitQuiz() : goNext();
+                          }
+                        }}
+                        autoFocus
+                      />
+                    </div>
+                  )}
+
+                  {currentStep.kind === "textarea" && (
+                    <div className="qz-field">
+                      <label className="qz-field-label" htmlFor={`${currentStep.id}-field`}>
+                        Business and offer
+                      </label>
+                      <textarea
+                        id={`${currentStep.id}-field`}
+                        className="qz-textarea"
+                        value={textAnswer(answers[currentStep.id])}
+                        placeholder={currentStep.placeholder}
+                        onChange={(event) => setText(currentStep, event.target.value)}
+                      />
+                    </div>
+                  )}
+
+                  {limitMessage && <p className="qz-error">{limitMessage}</p>}
+                  {phoneError && <p className="qz-error">{phoneError}</p>}
+                </div>
+                  <div className={`qz-scrollfade${showScrollHint ? " is-visible" : ""}`} aria-hidden="true" />
+                </div>
+
+                <div className="qz-nav">
+                  {currentStep.optional && !hasAnswerText(answers, currentStep) && (
+                    <button type="button" className="qz-skip" onClick={goNext}>
+                      Skip
+                    </button>
+                  )}
+                  <button type="button" className="qz-back" onClick={goBack} disabled={stepIndex === 0 || submitting}>
+                    Back
+                  </button>
+                  <button type="button" className="qz-cta qz-next" onClick={onPrimaryAction} disabled={!canContinue}>
+                    {submitting ? "Sending…" : isLastStep ? "Submit & claim offer" : "Continue"}
+                    {!submitting && <ArrowIcon />}
+                  </button>
+                </div>
+              </div>
+            </>
           )}
 
+          {/* ---------- Success ---------- */}
           {success && (
-            <div className="analysis-success" key="success">
-              <span className="analysis-check">OK</span>
-              <h2>Offer request submitted.</h2>
-              <p>
-                {textAnswer(answers.name) ? `${textAnswer(answers.name)}, your` : "Your"} answers have
-                been received. Yuyu Creative will follow up on WhatsApp with the best next step.
-              </p>
-              <div className="analysis-success-steps">
-                <span>Answers received</span>
-                <span>Scope reviewed</span>
+            <div className="qz-success" key="success">
+              <span className="qz-check" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20 6L9 17l-5-5" />
+                </svg>
+              </span>
+              <h2>{textAnswer(answers.name) ? `Thank you, ${textAnswer(answers.name)}.` : "Thank you."}</h2>
+              <p>Your answers are in. We&rsquo;re preparing your tailored short-video analysis and will reach out on WhatsApp within 24 hours.</p>
+              <div className="qz-success-steps">
+                <span className="is-done">Answers received</span>
+                <span>Strategy reviewed</span>
                 <span>WhatsApp follow-up</span>
               </div>
-              <a href={whatsAppHref} className="analysis-main-cta" target="_blank" rel="noreferrer">
-                Open WhatsApp
+              <a href={whatsAppHref} className="qz-cta qz-success-cta" target="_blank" rel="noreferrer">
+                Message us on WhatsApp
                 <WhatsAppIcon />
               </a>
             </div>
@@ -692,4 +779,8 @@ export default function FreeAnalysisQuiz() {
       </div>
     </section>
   );
+}
+
+function hasAnswerText(answers: Answers, step: QuizStep) {
+  return textAnswer(answers[step.id]).trim().length > 0;
 }
