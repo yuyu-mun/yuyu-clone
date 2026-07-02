@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 const LAT_MIN = -68;
 const LAT_MAX = 68;
@@ -18,13 +18,16 @@ type DomeTile = {
 };
 
 // Grid density scales down on smaller screens to keep things smooth. `live` is
-// how many tiles are real (decoding) <video> elements — every other tile is a
-// cheap poster image, so we never mount hundreds of simultaneous videos. Live
-// tiles are each given a DISTINCT clip so no video is duplicated on the sphere.
+// how many tiles are real (decoding) <video> elements at any instant — every
+// other tile is a cheap poster image. Crucially this is a small, FIXED budget:
+// only the tiles currently facing the camera are promoted to video, and as the
+// sphere rotates that budget follows the front arc (see the live-set effect).
+// Browsers can only hardware-decode a handful of streams at once, so keeping
+// this low — rather than mounting one video per tile — is what keeps it smooth.
 function gridFor(w: number) {
-  if (w < 640) return { cols: 24, rows: 7, tileScale: 0.8, live: 18 };
-  if (w < 1024) return { cols: 32, rows: 9, tileScale: 0.84, live: 70 };
-  return { cols: 42, rows: 10, tileScale: 0.88, live: 110 };
+  if (w < 640) return { cols: 24, rows: 7, tileScale: 0.8, live: 6 };
+  if (w < 1024) return { cols: 32, rows: 9, tileScale: 0.84, live: 10 };
+  return { cols: 42, rows: 10, tileScale: 0.88, live: 16 };
 }
 
 export default function DomeGallery({
@@ -43,7 +46,11 @@ export default function DomeGallery({
   const start = useRef({ x: 0, y: 0 });
   const moved = useRef(false);
   const visible = useRef(false); // is the dome on screen? gates rotation + playback
-  const [dim, setDim] = useState({ radius: 740, cols: 42, rows: 10, tileScale: 0.88, live: 24 });
+  const [dim, setDim] = useState({ radius: 740, cols: 42, rows: 10, tileScale: 0.88, live: 16 });
+  // Which tile indices are currently live <video> tiles. Recomputed as the dome
+  // rotates so it always tracks the front-facing arc (the only tiles the eye can
+  // actually see); everything else renders as its poster image.
+  const [liveKeys, setLiveKeys] = useState<Set<number>>(new Set());
   const [ready, setReady] = useState(false);
   // The dome is a heavy, below-the-fold section (dozens of reel videos + poster
   // images). We don't mount any of that media until the scene scrolls near the
@@ -100,28 +107,35 @@ export default function DomeGallery({
   const tileW = 2 * radius * tan(segX / 2) * tileScale;
   const tileH = tileW * (16 / 9);
 
-  const mediaPool = media.length ? media : [{ src: "/images/case-2.jpg", alt: "" }];
-  const tiles: DomeTile[] = [];
-  let k = 0;
-  for (let r = 0; r < rows; r++) {
-    const lat = LAT_MIN + r * segY;
-    for (let c = 0; c < cols; c++) {
-      const lon = c * segX + (r % 2) * (segX / 2);
-      tiles.push({ lat, lon, media: mediaPool[k % mediaPool.length] });
-      k++;
+  // Tile layout is deterministic (SSR and client agree) and only changes when
+  // the grid dimensions do. Each tile keeps its own round-robin reel so the same
+  // clip's duplicate always sits ~half a sphere away, never in the same arc.
+  const tiles = useMemo(() => {
+    const pool = media.length ? media : [{ src: "/images/case-2.jpg", alt: "" }];
+    const out: DomeTile[] = [];
+    let k = 0;
+    for (let r = 0; r < rows; r++) {
+      const lat = LAT_MIN + r * segY;
+      for (let c = 0; c < cols; c++) {
+        const lon = c * segX + (r % 2) * (segX / 2);
+        out.push({ lat, lon, media: pool[k % pool.length] });
+        k++;
+      }
     }
-  }
+    return out;
+  }, [cols, rows, segX, segY, media]);
 
-  // A capped, evenly-spread subset of tiles become live videos; the rest stay
-  // poster images. Each tile keeps its own round-robin reel, so a live video is
-  // never sitting next to a poster of the same reel (its duplicate is ~half a
-  // sphere away). Deterministic so SSR and client agree.
-  const liveStep = Math.max(1, Math.floor(tiles.length / live));
-  const liveSet = new Set<number>();
-  for (let i = 0; i < tiles.length && liveSet.size < live; i += liveStep) {
-    liveSet.add(i);
-  }
-  const isLive = (i: number) => liveSet.has(i);
+  // The tiles that can ever become live video: those whose media is an mp4. The
+  // live-set effect picks from these by how close each is to the front.
+  const videoTiles = useMemo(
+    () =>
+      tiles
+        .map((t, i) => ({ i, lon: t.lon, mp4: t.media.src.endsWith(".mp4") }))
+        .filter((t) => t.mp4),
+    [tiles]
+  );
+
+  const isLive = (i: number) => liveKeys.has(i);
 
   // Lazy playback: videos use preload="none" and only load + play while the dome
   // is in view. Scrolling to another section pauses them all, so nothing decodes
@@ -172,6 +186,50 @@ export default function DomeGallery({
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
   }, [radius, ready]);
+
+  // Follow the front arc: promote the `live` mp4 tiles closest to the camera to
+  // real <video>s and demote the rest back to posters. A tile's angle from the
+  // front is (lon + rotation) mod 360; we keep only the nearest few so the
+  // number of simultaneously decoding videos stays within the browser's budget.
+  // Polled (not per-frame) with a rotation-delta guard, so it's near-free while
+  // idle, and currently-live tiles get a stickiness bonus to stop flicker at the
+  // selection boundary as tiles drift in and out of the front.
+  useEffect(() => {
+    if (!active || !videoTiles.length) return;
+    const STICKY = 12; // deg of hysteresis for tiles that are already live
+    const norm = (a: number) => {
+      const x = ((a % 360) + 360) % 360;
+      return x > 180 ? x - 360 : x;
+    };
+    let lastRot = Number.NaN;
+    const recompute = () => {
+      const rotNow = rot.current;
+      if (!Number.isNaN(lastRot) && Math.abs(rotNow - lastRot) < 2.5) return;
+      lastRot = rotNow;
+      setLiveKeys((prev) => {
+        const scored = videoTiles
+          .map((t) => {
+            let d = Math.abs(norm(t.lon + rotNow));
+            if (prev.has(t.i)) d -= STICKY;
+            return { i: t.i, d };
+          })
+          .sort((a, b) => a.d - b.d);
+        const next = new Set<number>();
+        for (let n = 0; n < live && n < scored.length; n++) next.add(scored[n].i);
+        if (next.size === prev.size) {
+          let same = true;
+          next.forEach((x) => {
+            if (!prev.has(x)) same = false;
+          });
+          if (same) return prev;
+        }
+        return next;
+      });
+    };
+    recompute();
+    const id = window.setInterval(recompute, 180);
+    return () => window.clearInterval(id);
+  }, [active, videoTiles, live]);
 
   // horizontal drag only; a press without movement counts as a click
   const onDown = (e: React.PointerEvent) => {
