@@ -110,7 +110,7 @@ export default function HomePage() {
           </div>
 
           <div className="ref-hero-media">
-            <img src={heroImage} alt="The Yuyu Creative team at the 2025 annual dinner" />
+            <img src={heroImage} alt="The Yuyu Creative team at the 2025 annual dinner" fetchPriority="high" decoding="async" />
           </div>
         </div>
       </section>
@@ -120,13 +120,11 @@ export default function HomePage() {
           <Reveal className="ref-video-copy">
             <h2>Build a brand, not just ads.</h2>
             <p>
-              People follow and trust people, not logos. A personal brand — or founder IP — puts a
-              recognisable face, voice, and point of view on your business, so your expertise becomes
-              something audiences remember and return to. Yuyu Creative helps clients and professionals
-              across Malaysia build that IP with strategy-led short video: every clip compounds your
-              authority, warms up your audience, and drives inbound leads. Instead of renting attention
-              from the algorithm one paid campaign at a time, you own a brand that keeps working long
-              after the post goes live.
+              People trust people, not logos. A personal brand — or founder IP — puts a face, voice,
+              and point of view on your business, so your expertise is something audiences remember. We
+              build that IP with strategy-led short video across Malaysia: every clip compounds your
+              authority and brings the right people to you — instead of renting attention one paid
+              campaign at a time.
             </p>
           </Reveal>
           <Reveal className="ref-video-stage" delay={2}>
@@ -140,10 +138,9 @@ export default function HomePage() {
           <Reveal className="ref-section-head compact center">
             <h2>Work people remember.</h2>
             <p>
-              Browse autoplaying reel clips from clients, professionals, and brands Yuyu Creative
-              has filmed — spanning healthcare, beauty, automotive, home, pet, finance, and lifestyle.
-              Drag the gallery to explore the range of formats and faces we&apos;ve helped become names
-              their audiences recognise.
+              Reel clips from clients and brands we&apos;ve filmed — across healthcare, beauty,
+              automotive, home, pet, finance, and lifestyle. Drag to explore the faces we&apos;ve helped
+              become names their audiences recognise.
             </p>
           </Reveal>
 
@@ -239,7 +236,7 @@ export default function HomePage() {
                 <Stars />
                 <p>“{t.quote}”</p>
                 <div className="ref-review-by">
-                  <img src={t.img} alt={t.name} />
+                  <img src={t.img} alt={t.name} loading="lazy" decoding="async" />
                   <div>
                     <strong>{t.name}</strong>
                     {t.meta && <span>{t.meta}</span>}

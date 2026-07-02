@@ -32,8 +32,8 @@ export async function generateMetadata({ params }: IndustryPageProps): Promise<M
   }
 
   return {
-    title: `${category.label} Reels | Yuyu Creative`,
-    description: `${category.label} short-form reel wall by Yuyu Creative.`,
+    title: `${category.label} Short Video Portfolio | Yuyu Creative Malaysia`,
+    description: `${category.label} short-form video work by Yuyu Creative — real client reels built with strategy-led production for brands in Malaysia and beyond.`,
   };
 }
 

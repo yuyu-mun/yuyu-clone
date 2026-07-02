@@ -16,14 +16,14 @@ function PinIcon() {
   );
 }
 
-export default function ContactMap({ googleMapsUrl }: { googleMapsUrl: string }) {
+export default function ContactMap({ googleMapsUrl, locale = "en" }: { googleMapsUrl: string; locale?: "en" | "zh" }) {
   return (
     <>
       <div className="cx-map">
         <iframe
           className="cx-map-frame"
           src={EMBED_SRC}
-          title="Yuyu Creative studio location on Google Maps"
+          title={locale === "zh" ? "嶼嶼創意工作室位置（Google 地圖）" : "Yuyu Creative studio location on Google Maps"}
           loading="lazy"
           allowFullScreen
           referrerPolicy="strict-origin-when-cross-origin"
@@ -31,7 +31,7 @@ export default function ContactMap({ googleMapsUrl }: { googleMapsUrl: string })
       </div>
       <div className="cx-mapbar">
         <a className="cx-mapbtn cx-mapbtn-g" href={googleMapsUrl} target="_blank" rel="noopener noreferrer">
-          <PinIcon /> Open in Maps
+          <PinIcon /> {locale === "zh" ? "在 Google 地圖開啟" : "Open in Maps"}
         </a>
         <a className="cx-mapbtn cx-mapbtn-w" href={wazeUrl} target="_blank" rel="noopener noreferrer">
           <PinIcon /> Waze

@@ -67,7 +67,7 @@ export default function CtaModal() {
           ×
         </button>
         <div className="cta-modal-brand">
-          <img className="cta-modal-photo" src="/images/cta-modal-visual.png" alt="" />
+          <img className="cta-modal-photo" src="/images/cta-modal-visual.webp" alt="" loading="lazy" decoding="async" />
           <img className="cta-modal-logo" src="/images/logo-white-horizontal.png" alt="Yuyu Creative" />
           <div className="cta-modal-brand-card">
             <span>Free audit</span>

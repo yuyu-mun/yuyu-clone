@@ -1,10 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import type { ReactNode } from "react";
 import { ArrowIcon, WhatsAppIcon } from "@/components/Icons";
 import { company } from "@/lib/site";
 
 const N8N_URL = "https://ycmyn8n.zeabur.app/webhook/yuyu-quiz-en";
+
+type Locale = "en" | "zh";
 
 type AnswerValue = string | string[];
 type Answers = Record<string, AnswerValue>;
@@ -28,7 +31,57 @@ type QuizStep = {
   condition?: (answers: Answers) => boolean;
 };
 
-const quizSteps: QuizStep[] = [
+type QuizCopy = {
+  steps: QuizStep[];
+  intro: {
+    logoAlt: string;
+    titleWords: string[];
+    titleHighlight: string;
+    description: string;
+    startAriaLabel: string;
+    orbRingText: string;
+    orbLoading: string;
+    orbStart: string;
+    meta: ReactNode;
+  };
+  topbar: {
+    questionOf: (position: number, total: number) => string;
+    almostDone: string;
+  };
+  feedback: {
+    typeItBelow: string;
+    nice: string;
+    updated: string;
+    limitReached: string;
+    picked: (count: number, max: number) => string;
+    ready: string;
+  };
+  limitMessage: (max: number) => string;
+  otherAnswer: (value: string) => string;
+  otherField: {
+    label: (stepId: string) => string;
+    placeholder: (stepId: string) => string;
+  };
+  textFieldLabel: (stepId: string) => string;
+  textareaLabel: string;
+  phoneError: string;
+  nav: {
+    skip: string;
+    back: string;
+    sending: string;
+    submit: string;
+    continue: string;
+  };
+  success: {
+    title: (name: string) => string;
+    body: string;
+    steps: [string, string, string];
+    cta: string;
+  };
+  whatsappFollowUpMessage: string;
+};
+
+const quizStepsEn: QuizStep[] = [
   {
     id: "q1",
     part: "Part 1: About You",
@@ -272,6 +325,359 @@ const quizSteps: QuizStep[] = [
   },
 ];
 
+const quizStepsZh: QuizStep[] = [
+  {
+    id: "q1",
+    part: "第一部分：關於你",
+    question: "你屬於哪個產業？",
+    hint: "請選一項。",
+    kind: "single",
+    options: [
+      { key: "A", label: "餐飲／食品" },
+      { key: "B", label: "零售／電商" },
+      { key: "C", label: "美容／美髮／美甲" },
+      { key: "D", label: "房地產／建築／裝修" },
+      { key: "E", label: "教育／培訓" },
+      { key: "F", label: "醫療／健康／養生" },
+      { key: "G", label: "法律／會計／金融" },
+      { key: "H", label: "汽車／摩托車" },
+      { key: "I", label: "科技／軟體／IT 服務" },
+      { key: "J", label: "其他", other: true },
+    ],
+  },
+  {
+    id: "q2",
+    part: "第一部分：關於你",
+    question: "你在這個產業做了多久？",
+    hint: "請選一項。",
+    kind: "single",
+    options: [
+      { key: "A", label: "1-3 年" },
+      { key: "B", label: "3-5 年" },
+      { key: "C", label: "5-10 年" },
+      { key: "D", label: "10 年以上" },
+    ],
+  },
+  {
+    id: "q3",
+    part: "第一部分：關於你",
+    question: "你的公司名稱和主要產品或服務是什麼？",
+    hint: "簡短描述即可。",
+    kind: "textarea",
+    placeholder: "例如：我在吉隆坡經營一家做住宅與商業空間的裝修公司。",
+  },
+  {
+    id: "q4",
+    part: "第一部分：關於你",
+    question: "你覺得客戶對你的第一印象是什麼？",
+    hint: "最多選 3 項。",
+    kind: "multi",
+    max: 3,
+    options: [
+      { key: "A", label: "專業可靠" },
+      { key: "B", label: "親切好聊" },
+      { key: "C", label: "價格實惠" },
+      { key: "D", label: "品質真的很好" },
+      { key: "E", label: "經驗豐富、有口碑" },
+      { key: "F", label: "創新、跟得上趨勢" },
+      { key: "G", label: "真誠直接不繞彎" },
+      { key: "H", label: "有個人魅力" },
+    ],
+  },
+  {
+    id: "q5",
+    part: "第二部分：關於你的客戶",
+    question: "你最想服務哪一種客戶？",
+    hint: "請選一項。",
+    kind: "single",
+    options: [
+      { key: "A", label: "有預算但沒時間做功課的人" },
+      { key: "B", label: "精打細算、追求高 CP 值的消費者" },
+      { key: "C", label: "重視品質、願意為此多付一點的人" },
+      { key: "D", label: "還不太懂、剛入門的新手" },
+      { key: "E", label: "同產業的企業客戶" },
+      { key: "F", label: "其他", other: true },
+    ],
+  },
+  {
+    id: "q6",
+    part: "第二部分：關於你的客戶",
+    question: "在找到你之前，客戶面臨最大的問題是什麼？",
+    hint: "最多選 3 項。",
+    kind: "multi",
+    max: 3,
+    options: [
+      { key: "A", label: "不知道怎麼選，怕做錯決定" },
+      { key: "B", label: "之前被坑過或被騙過" },
+      { key: "C", label: "市場價格不透明" },
+      { key: "D", label: "找不到值得信任的人" },
+      { key: "E", label: "看不懂技術層面的東西" },
+      { key: "F", label: "預算有限，怕白花錢" },
+      { key: "G", label: "之前找過別人但不滿意" },
+    ],
+  },
+  {
+    id: "q7",
+    part: "第二部分：關於你的客戶",
+    question: "客戶通常為什麼選你，而不是別人？",
+    hint: "最多選 2 項。",
+    kind: "multi",
+    max: 2,
+    options: [
+      { key: "A", label: "我的專業更強" },
+      { key: "B", label: "我的價格更有競爭力" },
+      { key: "C", label: "口碑好、常有人轉介紹" },
+      { key: "D", label: "我真誠、不強迫推銷" },
+      { key: "E", label: "我的服務更全面" },
+      { key: "F", label: "我有成功案例和作品可以看" },
+      { key: "G", label: "客戶跟我聊過一次就信任我" },
+    ],
+  },
+  {
+    id: "q8",
+    part: "第三部分：關於短影音",
+    question: "你目前有在經營社群媒體嗎？",
+    hint: "請選一項。",
+    kind: "single",
+    options: [
+      { key: "A", label: "有，非常活躍，每週都發文" },
+      { key: "B", label: "有，但很少更新" },
+      { key: "C", label: "有帳號但幾乎沒在用" },
+      { key: "D", label: "完全沒有" },
+    ],
+  },
+  {
+    id: "q8a",
+    part: "第三部分：關於短影音",
+    question: "你的社群媒體帳號是？",
+    hint: "選填。",
+    kind: "text",
+    optional: true,
+    placeholder: "例如：@yuyu_creative",
+    condition: (answers) => {
+      const social = String(answers.q8 || "");
+      return Boolean(social) && !social.startsWith("D.");
+    },
+  },
+  {
+    id: "q9",
+    part: "第三部分：關於短影音",
+    question: "如果今天就要開拍，你最有信心聊哪個主題？",
+    hint: "請選一項。",
+    kind: "single",
+    options: [
+      { key: "A", label: "我們產業裡的內行知識" },
+      { key: "B", label: "客戶最常問的問題" },
+      { key: "C", label: "我的創業歷程或個人故事" },
+      { key: "D", label: "怎麼挑選對的產品或服務" },
+      { key: "E", label: "關於我賣的東西的深度知識" },
+      { key: "F", label: "還沒有想法" },
+    ],
+  },
+  {
+    id: "q10",
+    part: "第三部分：關於短影音",
+    question: "你最希望短影音幫你達成什麼？",
+    hint: "請選一項。",
+    kind: "single",
+    options: [
+      { key: "A", label: "讓更多人認識我的品牌" },
+      { key: "B", label: "建立我的專業形象" },
+      { key: "C", label: "不再只靠廣告也能帶來客戶" },
+      { key: "D", label: "跟現有客戶建立更深的信任" },
+      { key: "E", label: "以上皆是" },
+    ],
+  },
+  {
+    id: "q11",
+    part: "第四部分：你目前的狀態",
+    question: "你的競爭對手或同行已經在做短影音了嗎？",
+    hint: "請選一項。",
+    kind: "single",
+    options: [
+      { key: "A", label: "有，而且做得不錯" },
+      { key: "B", label: "有，但內容看起來很普通" },
+      { key: "C", label: "有幾個開始嘗試了" },
+      { key: "D", label: "目前還沒看到" },
+      { key: "E", label: "我不確定" },
+    ],
+  },
+  {
+    id: "q12",
+    part: "第四部分：你目前的狀態",
+    question: "你為什麼想開始做短影音？",
+    hint: "最多選 3 項。",
+    kind: "multi",
+    max: 3,
+    options: [
+      { key: "A", label: "同行都在做，我不想落後" },
+      { key: "B", label: "廣告越來越貴" },
+      { key: "C", label: "我想建立個人品牌和形象" },
+      { key: "D", label: "我想讓客戶主動找上門" },
+      { key: "E", label: "我想累積內容資產，而不只是投廣告" },
+      { key: "F", label: "朋友或客戶跟我說應該開始" },
+      { key: "G", label: "我很好奇，想多了解" },
+    ],
+  },
+  {
+    id: "q13",
+    part: "第四部分：你目前的狀態",
+    question: "到現在為止，是什麼讓你一直沒有開始？",
+    hint: "最多選 3 項。",
+    kind: "multi",
+    max: 3,
+    options: [
+      { key: "A", label: "不知道要做什麼內容" },
+      { key: "B", label: "面對鏡頭不自在" },
+      { key: "C", label: "沒時間拍攝和剪輯" },
+      { key: "D", label: "找不到可靠的團隊" },
+      { key: "E", label: "不確定短影音適不適合我的產業" },
+      { key: "F", label: "感覺費用太高" },
+      { key: "G", label: "之前試過但效果不好" },
+      { key: "H", label: "我準備好了，正在找對的合作夥伴" },
+    ],
+  },
+  {
+    id: "q14",
+    part: "第四部分：你目前的狀態",
+    question: "如果要開始，你每個月的大概預算是多少？",
+    hint: "請選一項。",
+    kind: "single",
+    options: [
+      { key: "A", label: "RM3,000 以下" },
+      { key: "B", label: "RM3,000 - RM5,000" },
+      { key: "C", label: "RM5,000 - RM10,000" },
+      { key: "D", label: "RM10,000 以上" },
+      { key: "E", label: "還沒有概念，想先了解" },
+    ],
+  },
+  {
+    id: "name",
+    part: "快完成了",
+    question: "我們該怎麼稱呼你？",
+    hint: "名字或暱稱即可。",
+    kind: "text",
+    placeholder: "例如：Danny、Kelly、Aaron",
+  },
+  {
+    id: "whatsapp",
+    part: "最後一步",
+    question: "你的 WhatsApp 號碼是？",
+    hint: "診斷結果會在 24 小時內傳送到這裡。",
+    kind: "text",
+    placeholder: "例如：0123456789",
+  },
+];
+
+const quizCopy: Record<Locale, QuizCopy> = {
+  en: {
+    steps: quizStepsEn,
+    intro: {
+      logoAlt: "Yuyu Creative",
+      titleWords: ["Free", "Brand"],
+      titleHighlight: "Analysis",
+      description: "Short-video strategy, tailored to your brand.",
+      startAriaLabel: "Start the free analysis",
+      orbRingText: "KNOW WHAT TO POST · SHORT-VIDEO STRATEGY ·",
+      orbLoading: "Loading",
+      orbStart: "Start",
+      meta: (
+        <>
+          <b>14</b> questions · <b>5</b> min · reply within <b>24h</b>
+        </>
+      ),
+    },
+    topbar: {
+      questionOf: (position, total) => `Question ${position} of ${total}`,
+      almostDone: "Almost done",
+    },
+    feedback: {
+      typeItBelow: "Type it below",
+      nice: "Nice!",
+      updated: "Updated",
+      limitReached: "Limit reached",
+      picked: (count, max) => `${count}/${max} picked`,
+      ready: "Ready",
+    },
+    limitMessage: (max) => `Pick up to ${max} — tap one to swap.`,
+    otherAnswer: (value) => `Others: ${value}`,
+    otherField: {
+      label: (stepId) => (stepId === "q1" ? "Your industry" : "Your customer type"),
+      placeholder: (stepId) => (stepId === "q1" ? "Example: Event planning" : "Example: Parents buying for kids"),
+    },
+    textFieldLabel: (stepId) => (stepId === "whatsapp" ? "Malaysian WhatsApp number" : "Your answer"),
+    textareaLabel: "Business and offer",
+    phoneError: "Please enter a valid Malaysian phone number, such as 0123456789 or 60123456789.",
+    nav: {
+      skip: "Skip",
+      back: "Back",
+      sending: "Sending…",
+      submit: "Submit & claim offer",
+      continue: "Continue",
+    },
+    success: {
+      title: (name) => (name ? `Thank you, ${name}.` : "Thank you."),
+      body: "Your answers are in. We’re preparing your tailored short-video analysis and will reach out on WhatsApp within 24 hours.",
+      steps: ["Answers received", "Strategy reviewed", "WhatsApp follow-up"],
+      cta: "Message us on WhatsApp",
+    },
+    whatsappFollowUpMessage: "Hi! I just submitted the claim offer form and would like to follow up.",
+  },
+  zh: {
+    steps: quizStepsZh,
+    intro: {
+      logoAlt: "嶼嶼創意",
+      titleWords: ["免費", "品牌"],
+      titleHighlight: "診斷",
+      description: "為你的品牌量身打造的短影音策略。",
+      startAriaLabel: "開始免費品牌診斷",
+      orbRingText: "知道該發什麼 · 短影音策略 ·",
+      orbLoading: "載入中",
+      orbStart: "開始",
+      meta: (
+        <>
+          <b>14</b> 個問題 · <b>5</b> 分鐘 · <b>24</b> 小時內回覆
+        </>
+      ),
+    },
+    topbar: {
+      questionOf: (position, total) => `第 ${position} 題，共 ${total} 題`,
+      almostDone: "即將完成",
+    },
+    feedback: {
+      typeItBelow: "請在下方填寫",
+      nice: "很好！",
+      updated: "已更新",
+      limitReached: "已達上限",
+      picked: (count, max) => `已選 ${count}/${max}`,
+      ready: "已填好",
+    },
+    limitMessage: (max) => `最多選 ${max} 項，點選已選的選項即可更換。`,
+    otherAnswer: (value) => `其他：${value}`,
+    otherField: {
+      label: (stepId) => (stepId === "q1" ? "你的產業" : "你的客戶類型"),
+      placeholder: (stepId) => (stepId === "q1" ? "例如：活動策劃" : "例如：幫孩子選購的家長"),
+    },
+    textFieldLabel: (stepId) => (stepId === "whatsapp" ? "馬來西亞 WhatsApp 號碼" : "你的回答"),
+    textareaLabel: "公司與主要產品或服務",
+    phoneError: "請輸入有效的馬來西亞手機號碼，例如 0123456789 或 60123456789。",
+    nav: {
+      skip: "略過",
+      back: "上一題",
+      sending: "傳送中…",
+      submit: "送出並領取優惠",
+      continue: "下一題",
+    },
+    success: {
+      title: (name) => (name ? `${name}，謝謝你。` : "謝謝你。"),
+      body: "我們已收到你的回答，正在為你準備專屬的短影音品牌診斷，會在 24 小時內透過 WhatsApp 與你聯繫。",
+      steps: ["已收到回答", "策略分析中", "WhatsApp 跟進"],
+      cta: "透過 WhatsApp 聯繫我們",
+    },
+    whatsappFollowUpMessage: "你好！我剛剛填寫了免費品牌診斷問卷，想進一步了解。",
+  },
+};
+
 const payloadKeys = [
   "q1",
   "q2",
@@ -321,7 +727,8 @@ function normalizeMalaysianPhone(value: string) {
   return /^601[0-9]{8,9}$/.test(normalized) ? normalized : null;
 }
 
-export default function FreeAnalysisQuiz() {
+export default function FreeAnalysisQuiz({ locale = "en" }: { locale?: Locale }) {
+  const copy = quizCopy[locale];
   const [started, setStarted] = useState(false);
   const [starting, setStarting] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
@@ -336,8 +743,8 @@ export default function FreeAnalysisQuiz() {
   const advanceTimer = useRef<number | null>(null);
 
   const steps = useMemo(
-    () => quizSteps.filter((step) => !step.condition || step.condition(answers)),
-    [answers],
+    () => copy.steps.filter((step) => !step.condition || step.condition(answers)),
+    [answers, copy],
   );
   const currentStep = steps[stepIndex] || steps[steps.length - 1];
   const quizQuestionCount = steps.filter((step) => step.id.startsWith("q") && step.id !== "q8a").length;
@@ -419,12 +826,12 @@ export default function FreeAnalysisQuiz() {
     });
 
     if (option.other) {
-      showAnswerFeedback("Type it below");
+      showAnswerFeedback(copy.feedback.typeItBelow);
       return;
     }
 
     // Quizizz-style auto-advance: let the tap land, then glide to the next question.
-    showAnswerFeedback("Nice!");
+    showAnswerFeedback(copy.feedback.nice);
     if (!isLastStep) {
       advanceTimer.current = window.setTimeout(() => {
         setStepIndex((index) => Math.min(index + 1, steps.length - 1));
@@ -444,13 +851,13 @@ export default function FreeAnalysisQuiz() {
         ...prev,
         [step.id]: listAnswer(prev[step.id]).filter((item) => item !== value),
       }));
-      showAnswerFeedback("Updated");
+      showAnswerFeedback(copy.feedback.updated);
       return;
     }
 
     if (selected.length >= max) {
-      setLimitMessage(`Pick up to ${max} — tap one to swap.`);
-      showAnswerFeedback("Limit reached");
+      setLimitMessage(copy.limitMessage(max));
+      showAnswerFeedback(copy.feedback.limitReached);
       return;
     }
 
@@ -461,24 +868,24 @@ export default function FreeAnalysisQuiz() {
       if (current.includes(value) || current.length >= max) return prev;
       return { ...prev, [step.id]: [...current, value] };
     });
-    showAnswerFeedback(`${selected.length + 1}/${max} picked`);
+    showAnswerFeedback(copy.feedback.picked(selected.length + 1, max));
   }
 
   function setText(step: QuizStep, value: string) {
     setPhoneError("");
-    setAnswerFeedback(value.trim() ? "Ready" : "");
+    setAnswerFeedback(value.trim() ? copy.feedback.ready : "");
     setAnswers((prev) => ({ ...prev, [step.id]: value }));
   }
 
   function setOtherText(step: QuizStep, value: string) {
     setLimitMessage("");
     setPhoneError("");
-    setAnswerFeedback(value.trim() ? "Ready" : "Type it below");
+    setAnswerFeedback(value.trim() ? copy.feedback.ready : copy.feedback.typeItBelow);
     setAnswers((prev) => ({
       ...prev,
       [`${step.id}Other`]: value,
       [`${step.id}OtherActive`]: "true",
-      [step.id]: value.trim() ? `Others: ${value.trim()}` : "",
+      [step.id]: value.trim() ? copy.otherAnswer(value.trim()) : "",
     }));
   }
 
@@ -504,7 +911,7 @@ export default function FreeAnalysisQuiz() {
 
     const normalizedPhone = normalizeMalaysianPhone(textAnswer(answers.whatsapp));
     if (!normalizedPhone) {
-      setPhoneError("Please enter a valid Malaysian phone number, such as 0123456789 or 60123456789.");
+      setPhoneError(copy.phoneError);
       return;
     }
 
@@ -514,6 +921,7 @@ export default function FreeAnalysisQuiz() {
     }, {});
     payload.source = "yuyu-clone/claim-offer";
     payload.submittedAt = new Date().toISOString();
+    if (locale !== "en") payload.locale = locale;
 
     setSubmitting(true);
     try {
@@ -552,7 +960,7 @@ export default function FreeAnalysisQuiz() {
     (option) => option.other && textAnswer(answers[`${currentStep.id}OtherActive`]) === "true",
   );
   const whatsAppHref = `https://api.whatsapp.com/send/?phone=${company.whatsapp}&text=${encodeURIComponent(
-    "Hi! I just submitted the claim offer form and would like to follow up.",
+    copy.whatsappFollowUpMessage,
   )}`;
 
   return (
@@ -579,25 +987,25 @@ export default function FreeAnalysisQuiz() {
               <span className="qz-fx beam" aria-hidden="true" />
 
               <div className="qz-intro-inner">
-                <img className="qz-intro-logo" src="/images/logo-black-horizontal.png" alt="Yuyu Creative" />
+                <img className="qz-intro-logo" src="/images/logo-black-horizontal.png" alt={copy.intro.logoAlt} />
 
                 <h1 className="qz-intro-title">
-                  {["Free", "Brand"].map((w, i) => (
+                  {copy.intro.titleWords.map((w, i) => (
                     <span className="qz-word" style={{ ["--w" as string]: i }} key={w}>{w}</span>
                   ))}
                   <span className="qz-hl">
-                    <span className="qz-word" style={{ ["--w" as string]: 2 }}>Analysis</span>
+                    <span className="qz-word" style={{ ["--w" as string]: copy.intro.titleWords.length }}>{copy.intro.titleHighlight}</span>
                   </span>
                 </h1>
 
-                <p className="qz-intro-desc">Short-video strategy, tailored to your brand.</p>
+                <p className="qz-intro-desc">{copy.intro.description}</p>
 
                 <button
                   type="button"
                   className="qz-orb"
                   onClick={onPrimaryAction}
                   disabled={starting}
-                  aria-label="Start the free analysis"
+                  aria-label={copy.intro.startAriaLabel}
                 >
                   <svg className="qz-orb-ring" viewBox="0 0 220 220" aria-hidden="true">
                     <defs>
@@ -605,18 +1013,18 @@ export default function FreeAnalysisQuiz() {
                     </defs>
                     <text textLength="527" lengthAdjust="spacing">
                       <textPath href="#qzCirclePath" startOffset="0">
-                        KNOW WHAT TO POST · SHORT-VIDEO STRATEGY ·
+                        {copy.intro.orbRingText}
                       </textPath>
                     </text>
                   </svg>
                   <span className="qz-orb-core">
-                    <span className="qz-orb-label">{starting ? "Loading" : "Start"}</span>
+                    <span className="qz-orb-label">{starting ? copy.intro.orbLoading : copy.intro.orbStart}</span>
                     <span className="qz-orb-arrow" aria-hidden="true"><ArrowIcon /></span>
                   </span>
                 </button>
 
                 <p className="qz-intro-meta">
-                  <b>14</b> questions · <b>5</b> min · reply within <b>24h</b>
+                  {copy.intro.meta}
                 </p>
               </div>
             </div>
@@ -628,7 +1036,7 @@ export default function FreeAnalysisQuiz() {
               <div className="qz-topbar">
                 <span className="qz-topbar-part">{partLabel}</span>
                 <span className="qz-topbar-count">
-                  {activeQuizPosition ? `Question ${activeQuizPosition} of ${quizQuestionCount}` : "Almost done"}
+                  {activeQuizPosition ? copy.topbar.questionOf(activeQuizPosition, quizQuestionCount) : copy.topbar.almostDone}
                 </span>
               </div>
               <div className="qz-progress" aria-hidden="true">
@@ -679,7 +1087,7 @@ export default function FreeAnalysisQuiz() {
                   {selectedOther && (
                     <div className="qz-field">
                       <label className="qz-field-label" htmlFor={`${currentStep.id}-other`}>
-                        {currentStep.id === "q1" ? "Your industry" : "Your customer type"}
+                        {copy.otherField.label(currentStep.id)}
                       </label>
                       <input
                         id={`${currentStep.id}-other`}
@@ -687,7 +1095,7 @@ export default function FreeAnalysisQuiz() {
                         type="text"
                         value={textAnswer(answers[`${currentStep.id}Other`])}
                         onChange={(event) => setOtherText(currentStep, event.target.value)}
-                        placeholder={currentStep.id === "q1" ? "Example: Event planning" : "Example: Parents buying for kids"}
+                        placeholder={copy.otherField.placeholder(currentStep.id)}
                         autoFocus
                       />
                     </div>
@@ -696,7 +1104,7 @@ export default function FreeAnalysisQuiz() {
                   {currentStep.kind === "text" && (
                     <div className="qz-field">
                       <label className="qz-field-label" htmlFor={`${currentStep.id}-field`}>
-                        {currentStep.id === "whatsapp" ? "Malaysian WhatsApp number" : "Your answer"}
+                        {copy.textFieldLabel(currentStep.id)}
                       </label>
                       <input
                         id={`${currentStep.id}-field`}
@@ -718,7 +1126,7 @@ export default function FreeAnalysisQuiz() {
                   {currentStep.kind === "textarea" && (
                     <div className="qz-field">
                       <label className="qz-field-label" htmlFor={`${currentStep.id}-field`}>
-                        Business and offer
+                        {copy.textareaLabel}
                       </label>
                       <textarea
                         id={`${currentStep.id}-field`}
@@ -739,14 +1147,14 @@ export default function FreeAnalysisQuiz() {
                 <div className="qz-nav">
                   {currentStep.optional && !hasAnswerText(answers, currentStep) && (
                     <button type="button" className="qz-skip" onClick={goNext}>
-                      Skip
+                      {copy.nav.skip}
                     </button>
                   )}
                   <button type="button" className="qz-back" onClick={goBack} disabled={stepIndex === 0 || submitting}>
-                    Back
+                    {copy.nav.back}
                   </button>
                   <button type="button" className="qz-cta qz-next" onClick={onPrimaryAction} disabled={!canContinue}>
-                    {submitting ? "Sending…" : isLastStep ? "Submit & claim offer" : "Continue"}
+                    {submitting ? copy.nav.sending : isLastStep ? copy.nav.submit : copy.nav.continue}
                     {!submitting && <ArrowIcon />}
                   </button>
                 </div>
@@ -762,15 +1170,15 @@ export default function FreeAnalysisQuiz() {
                   <path d="M20 6L9 17l-5-5" />
                 </svg>
               </span>
-              <h2>{textAnswer(answers.name) ? `Thank you, ${textAnswer(answers.name)}.` : "Thank you."}</h2>
-              <p>Your answers are in. We&rsquo;re preparing your tailored short-video analysis and will reach out on WhatsApp within 24 hours.</p>
+              <h2>{copy.success.title(textAnswer(answers.name))}</h2>
+              <p>{copy.success.body}</p>
               <div className="qz-success-steps">
-                <span className="is-done">Answers received</span>
-                <span>Strategy reviewed</span>
-                <span>WhatsApp follow-up</span>
+                <span className="is-done">{copy.success.steps[0]}</span>
+                <span>{copy.success.steps[1]}</span>
+                <span>{copy.success.steps[2]}</span>
               </div>
               <a href={whatsAppHref} className="qz-cta qz-success-cta" target="_blank" rel="noreferrer">
-                Message us on WhatsApp
+                {copy.success.cta}
                 <WhatsAppIcon />
               </a>
             </div>

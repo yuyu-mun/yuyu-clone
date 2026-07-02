@@ -19,7 +19,7 @@ function remaining() {
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
-export default function CountdownTimer() {
+export default function CountdownTimer({ locale = "en" }: { locale?: "en" | "zh" }) {
   const [time, setTime] = useState<{ hours: number; minutes: number; seconds: number } | null>(null);
 
   useEffect(() => {
@@ -28,14 +28,15 @@ export default function CountdownTimer() {
     return () => clearInterval(id);
   }, []);
 
+  const labels = locale === "zh" ? ["時", "分", "秒"] : ["Hrs", "Min", "Sec"];
   const blocks: [string, number][] = [
-    ["Hrs", time?.hours ?? 0],
-    ["Min", time?.minutes ?? 0],
-    ["Sec", time?.seconds ?? 0],
+    [labels[0], time?.hours ?? 0],
+    [labels[1], time?.minutes ?? 0],
+    [labels[2], time?.seconds ?? 0],
   ];
 
   return (
-    <div className="offer-timer" role="timer" aria-label="Limited time offer countdown">
+    <div className="offer-timer" role="timer" aria-label={locale === "zh" ? "限時優惠倒數" : "Limited time offer countdown"}>
       {blocks.map(([label, value], i) => (
         <span className="offer-timer-block" key={label}>
           <strong suppressHydrationWarning>{time ? pad(value) : "--"}</strong>

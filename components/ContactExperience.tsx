@@ -41,51 +41,90 @@ function ArrowUpRight() {
 
 const tel = (n: string) => `tel:${n.replace(/[\s-]/g, "")}`;
 
-const details = [
-  {
-    icon: <PinIcon />,
-    label: "Studio address",
-    value: "E-9-4, Block E, Megan Avenue 1, 189 Jalan Tun Razak, 50400 Kuala Lumpur",
-    href: googleMapsUrl,
-    external: true,
-    cta: "Directions",
-    aria: `Open ${MAP_QUERY} in maps`,
+const strings = {
+  en: {
+    eyebrow: "Get in touch",
+    title: "Our details",
+    address: "Studio address",
+    office: "Office",
+    mobile: "Mobile",
+    email: "Email",
+    directions: "Directions",
+    call: "Call",
+    emailCta: "Email",
+    hours: "Studio hours",
+    hoursValue: "Mon – Fri · 9:30am – 6:30pm",
+    ariaMap: `Open ${MAP_QUERY} in maps`,
+    ariaCallOffice: (n: string) => `Call the office at ${n}`,
+    ariaCallMobile: (n: string) => `Call the mobile at ${n}`,
+    ariaEmail: (e: string) => `Email ${e}`,
   },
-  {
-    icon: <PhoneIcon />,
-    label: "Office",
-    value: company.phoneOffice,
-    tag: "(O)",
-    href: tel(company.phoneOffice),
-    cta: "Call",
-    aria: `Call the office at ${company.phoneOffice}`,
+  zh: {
+    eyebrow: "聯絡我們",
+    title: "聯絡資訊",
+    address: "工作室地址",
+    office: "辦公室電話",
+    mobile: "手機",
+    email: "Email",
+    directions: "導航",
+    call: "撥打",
+    emailCta: "寄信",
+    hours: "營業時間",
+    hoursValue: "週一至週五 · 9:30am – 6:30pm",
+    ariaMap: `在地圖中開啟 ${MAP_QUERY}`,
+    ariaCallOffice: (n: string) => `撥打辦公室電話 ${n}`,
+    ariaCallMobile: (n: string) => `撥打手機 ${n}`,
+    ariaEmail: (e: string) => `寄信給 ${e}`,
   },
-  {
-    icon: <PhoneIcon />,
-    label: "Mobile",
-    value: company.phoneMobile,
-    tag: "(H)",
-    href: tel(company.phoneMobile),
-    cta: "Call",
-    aria: `Call the mobile at ${company.phoneMobile}`,
-  },
-  {
-    icon: <MailIcon />,
-    label: "Email",
-    value: company.email,
-    href: `mailto:${company.email}`,
-    cta: "Email",
-    aria: `Email ${company.email}`,
-  },
-];
+};
 
-export default function ContactExperience() {
+export default function ContactExperience({ locale = "en" }: { locale?: "en" | "zh" }) {
+  const t = strings[locale];
+
+  const details = [
+    {
+      icon: <PinIcon />,
+      label: t.address,
+      value: "E-9-4, Block E, Megan Avenue 1, 189 Jalan Tun Razak, 50400 Kuala Lumpur",
+      href: googleMapsUrl,
+      external: true,
+      cta: t.directions,
+      aria: t.ariaMap,
+    },
+    {
+      icon: <PhoneIcon />,
+      label: t.office,
+      value: company.phoneOffice,
+      tag: "(O)",
+      href: tel(company.phoneOffice),
+      cta: t.call,
+      aria: t.ariaCallOffice(company.phoneOffice),
+    },
+    {
+      icon: <PhoneIcon />,
+      label: t.mobile,
+      value: company.phoneMobile,
+      tag: "(H)",
+      href: tel(company.phoneMobile),
+      cta: t.call,
+      aria: t.ariaCallMobile(company.phoneMobile),
+    },
+    {
+      icon: <MailIcon />,
+      label: t.email,
+      value: company.email,
+      href: `mailto:${company.email}`,
+      cta: t.emailCta,
+      aria: t.ariaEmail(company.email),
+    },
+  ];
+
   return (
     <section className="cx">
       <div className="container cx-inner">
         <header className="cx-head">
-          <span className="eyebrow">Get in touch</span>
-          <h1 className="cx-title">Our details</h1>
+          <span className="eyebrow">{t.eyebrow}</span>
+          <h1 className="cx-title">{t.title}</h1>
         </header>
 
         <div className="cx-main">
@@ -119,8 +158,8 @@ export default function ContactExperience() {
 
             <div className="cx-panel-foot">
               <div className="cx-hours">
-                <span className="cx-k">Studio hours</span>
-                <span className="cx-hours-v">Mon – Fri · 9:30am – 6:30pm</span>
+                <span className="cx-k">{t.hours}</span>
+                <span className="cx-hours-v">{t.hoursValue}</span>
               </div>
               <div className="cx-social-icons">
                 <a href={company.social.facebook} aria-label="Facebook" target="_blank" rel="noopener noreferrer"><FacebookIcon /></a>
@@ -132,7 +171,7 @@ export default function ContactExperience() {
 
           {/* Draggable map preview */}
           <div className="cx-mapcard">
-            <ContactMap googleMapsUrl={googleMapsUrl} />
+            <ContactMap googleMapsUrl={googleMapsUrl} locale={locale} />
           </div>
         </div>
       </div>

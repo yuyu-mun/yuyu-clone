@@ -12492,7 +12492,7 @@ img { max-width: 100%; display: block; }
    (maps / phone dialer / mail client).  No copy buttons.
    ======================================================================== */
 .cx { color: var(--ink); background: linear-gradient(180deg, var(--sky), #fff 55%); min-height: 100svh; display: flex; align-items: center; }
-.cx-inner { width: 100%; padding: calc(var(--header-h) + clamp(12px, 2vh, 28px)) 0 clamp(16px, 2.6vh, 32px); }
+.cx-inner { width: 100%; padding-top: calc(var(--header-h) + clamp(12px, 2vh, 28px)); padding-bottom: clamp(16px, 2.6vh, 32px); }
 
 .cx-head { max-width: 640px; margin: 0 0 clamp(18px, 2.6vh, 26px); }
 .cx-title { margin: 10px 0 0; font-size: clamp(2rem, 4.5vh, 2.85rem); line-height: 1.05; letter-spacing: -0.01em; }
@@ -12584,6 +12584,7 @@ img { max-width: 100%; display: block; }
 /* Responsive */
 @media (min-width: 961px) and (max-height: 820px) {
   .cx-inner { padding-top: calc(var(--header-h) + 10px); padding-bottom: 12px; }
+
   .cx-head { margin-bottom: 16px; }
   .cx-title { font-size: 2.25rem; }
   .cx-detail { padding: 11px 8px; }
@@ -12597,7 +12598,7 @@ img { max-width: 100%; display: block; }
   .cx-map { min-height: 300px; }
 }
 @media (max-width: 560px) {
-  .cx-inner { padding: calc(var(--header-h) + 28px) 0 48px; }
+  .cx-inner { padding-top: calc(var(--header-h) + 22px); padding-bottom: 44px; }
   .cx-panel { padding: 8px 16px; }
   .cx-detail { gap: 14px; padding: 17px 6px; }
   .cx-detail-cta { display: none; }
@@ -12605,4 +12606,173 @@ img { max-width: 100%; display: block; }
 }
 @media (prefers-reduced-motion: reduce) {
   .cx-detail, .cx-detail-ic, .cx-detail-cta, .cx-detail-go svg, .cx-mapbtn, .cx-social-icons a { transition: none; }
+}
+
+/* ========================================================================
+   Mobile-native polish layer
+   Appended last on purpose: these rules deliberately override the
+   per-section defaults above at phone sizes to make the site feel like a
+   native app — tighter type scale, compact cards, swipeable rows, and an
+   animated, action-led mobile menu.
+   ======================================================================== */
+
+/* -- Animated hamburger + sliding menu (all sizes; menu shows <=1040px) -- */
+a, button { -webkit-tap-highlight-color: transparent; }
+
+.menu-toggle span {
+  transition: transform 0.3s var(--ease), opacity 0.2s var(--ease);
+}
+.header.is-menu-open .menu-toggle span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.header.is-menu-open .menu-toggle span:nth-child(2) { opacity: 0; transform: scaleX(0.4); }
+.header.is-menu-open .menu-toggle span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+.mobile-menu {
+  display: flex;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-12px);
+  pointer-events: none;
+  transition: opacity 0.28s var(--ease), transform 0.32s var(--ease), visibility 0s linear 0.32s;
+}
+.mobile-menu.open {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  pointer-events: auto;
+  transition: opacity 0.28s var(--ease), transform 0.32s var(--ease);
+}
+.mobile-menu > * {
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.3s var(--ease), transform 0.3s var(--ease);
+}
+.mobile-menu.open > * { opacity: 1; transform: none; }
+.mobile-menu.open > *:nth-child(1) { transition-delay: 0.04s; }
+.mobile-menu.open > *:nth-child(2) { transition-delay: 0.07s; }
+.mobile-menu.open > *:nth-child(3) { transition-delay: 0.1s; }
+.mobile-menu.open > *:nth-child(4) { transition-delay: 0.13s; }
+.mobile-menu.open > *:nth-child(5) { transition-delay: 0.16s; }
+.mobile-menu.open > *:nth-child(6) { transition-delay: 0.19s; }
+.mobile-menu.open > *:nth-child(7) { transition-delay: 0.22s; }
+.mobile-menu.open > *:nth-child(8) { transition-delay: 0.25s; }
+
+.mobile-menu-cta {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+  padding-bottom: 8px;
+}
+.mobile-menu-cta .btn {
+  flex: 1;
+  justify-content: center;
+  text-align: center;
+  padding: 15px 12px;
+  border-radius: 14px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  border-bottom: 0;
+}
+.mobile-menu .mobile-cta-primary {
+  background: var(--blue);
+  color: #fff;
+  border-color: var(--blue);
+}
+.mobile-menu .mobile-cta-primary:hover { background: var(--blue-600); color: #fff; }
+.mobile-menu .mobile-cta-whatsapp {
+  background: #eafcf1;
+  color: #128c4b;
+  border: 1px solid #bdeed2;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mobile-menu, .mobile-menu > *, .menu-toggle span { transition: none; }
+}
+
+/* -------------------- Phone-size refinements -------------------- */
+@media (max-width: 640px) {
+  :root { --header-h: 62px; }
+  .header .logo img { height: 36px; }
+  .mobile-menu { padding: 10px 20px calc(26px + env(safe-area-inset-bottom)); }
+  .mobile-menu a { padding: 14px 0; font-size: 1.02rem; }
+
+  /* Type scale: phone body copy reads at ~16px, not desktop 17–18px */
+  .ref-section-head p,
+  .ref-video-copy p,
+  .ref-sticky-copy p,
+  .ref-platforms p,
+  .ref-partners-sub {
+    font-size: 0.98rem;
+    line-height: 1.66;
+  }
+  .ref-section-head { margin-bottom: 30px; }
+  .ref-hero-copy p { font-size: 1.04rem; line-height: 1.6; }
+  .ref-awards .ref-section-head p { font-size: 0.94rem; }
+  .ref-award-overlay p { font-size: 0.92rem; }
+
+  /* Partner logo wall: denser, app-like grid */
+  .ref-partners { padding: 56px 0; }
+  .ref-partner-grid { gap: 8px 6px; margin-top: 26px; }
+  .ref-partner-logo { width: clamp(72px, 21.5vw, 88px); }
+
+  /* Reviews: swipeable snap carousel instead of a long stack */
+  .ref-review-grid {
+    display: flex;
+    gap: 14px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding: 4px 20px 18px;
+    margin: 0 -20px;
+    scrollbar-width: none;
+  }
+  .ref-review-grid::-webkit-scrollbar { display: none; }
+  .ref-review-card {
+    flex: 0 0 82%;
+    scroll-snap-align: center;
+  }
+
+  /* Service pages: compact deliverable cards (icon beside text) */
+  .svc-head { margin-bottom: 32px; }
+  .svc-head h2 { font-size: 1.78rem; }
+  .svc-head p { font-size: 0.98rem; }
+  .svc-offerings { gap: 12px; }
+  .svc-offerings article {
+    min-height: 0;
+    padding: 16px 16px 18px;
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr);
+    column-gap: 14px;
+    align-content: start;
+  }
+  .svc-check { width: 40px; height: 40px; margin-bottom: 0; grid-row: 1 / span 2; border-radius: 12px; }
+  .svc-check svg { width: 19px; height: 19px; }
+  .svc-offerings h3 { grid-column: 2; font-size: 1.04rem; margin: 2px 0 5px; }
+  .svc-offerings p { grid-column: 2; font-size: 0.92rem; line-height: 1.56; }
+  .svc-offerings article::after { font-size: 2.4rem; right: 12px; bottom: 4px; }
+
+  /* Portfolio: hero hugs its content instead of filling the screen */
+  .pf9-hero { min-height: 0; padding: calc(var(--header-h) + 3.4rem) 0 3.2rem; }
+
+  /* Portfolio: filter chips become one swipeable row */
+  .rw-dock { padding: 10px 0; }
+  .rw-dock .container { padding: 0; }
+  .rw-filter {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    overflow-x: auto;
+    padding: 2px 16px 6px;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .rw-filter::-webkit-scrollbar { display: none; }
+  .rw-pill { flex: 0 0 auto; scroll-snap-align: start; }
+
+  /* Footer: two-column link grid, tighter rhythm */
+  .footer { padding-top: 52px; }
+  .footer .cols { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px 18px; }
+  .footer .cols > div:first-child,
+  .footer .cols > div:last-child { grid-column: 1 / -1; }
+  .footer ul li { margin-bottom: 10px; }
+  .footer .bottom { margin-top: 34px; font-size: 0.78rem; flex-direction: column; gap: 6px; }
 }

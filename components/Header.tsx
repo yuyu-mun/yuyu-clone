@@ -5,8 +5,8 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { nav, type NavItem } from "@/lib/site";
-import { navZh } from "@/lib/site.zh";
+import { nav, uiEn, whatsappUrl, type NavItem } from "@/lib/site";
+import { navZh, uiZh } from "@/lib/site.zh";
 
 function LanguageIcon() {
   return (
@@ -31,6 +31,8 @@ export default function Header() {
     ? pathname.replace(/^\/zh/, "") || "/"
     : pathname.startsWith("/our-portfolio/")
     ? "/zh/our-portfolio"
+    : pathname.startsWith("/marketing-insight/")
+    ? "/zh/marketing-insight"
     : pathname === "/"
     ? "/zh"
     : `/zh${pathname}`;
@@ -202,6 +204,25 @@ export default function Header() {
             </Link>
           );
         })}
+
+        <div className="mobile-menu-cta">
+          <Link
+            href={isZh ? "/zh/freeanalysis" : "/freeanalysis"}
+            className="btn mobile-cta-primary"
+            onClick={() => setOpen(false)}
+          >
+            {(isZh ? uiZh : uiEn).freeAnalysis}
+          </Link>
+          <a
+            href={whatsappUrl()}
+            className="btn mobile-cta-whatsapp"
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => setOpen(false)}
+          >
+            WhatsApp
+          </a>
+        </div>
       </div>
     </header>
   );

@@ -71,16 +71,16 @@ export const servicePages: Record<string, ServicePageConfig> = {
     title: "Short Video Services",
     subtitle: "A content atelier for brands that need attention to become trust.",
     lead: "We turn expertise into a complete short-form video system: positioning, content pillars, scripts, guided filming, retention-led editing, publishing support, and monthly performance learning. The result is not random posting. It is a repeatable content engine built for TikTok, Instagram Reels, YouTube Shorts, Facebook Reels, and Xiaohongshu RED.",
-    heroImg: "/images/generated-hero-studio.png",
+    heroImg: "/images/generated-hero-studio.webp",
     heroAlt: "Yuyu Creative studio setup for short video services in Malaysia",
     heroFrames: [
-      { img: "/images/process-03-planning.png", label: "Strategy" },
-      { img: "/images/process-04-filming.png", label: "Filming" },
-      { img: "/images/process-05-editing.png", label: "Editing" },
+      { img: "/images/process-03-planning.webp", label: "Strategy" },
+      { img: "/images/process-04-filming.webp", label: "Filming" },
+      { img: "/images/process-05-editing.webp", label: "Editing" },
     ],
     stats: [
       { value: "8B+", label: "Views produced across platforms" },
-      { value: "5,000+", label: "Videos over 100K views" },
+      { value: "500+", label: "Videos over 100K views" },
       { value: "5", label: "Distribution platforms" },
     ],
     intro: {
@@ -169,16 +169,16 @@ export const servicePages: Record<string, ServicePageConfig> = {
     title: "Video Production",
     subtitle: "Polished enough for the brand. Human enough for the feed.",
     lead: "We produce short-form videos from concept to final cut: campaign direction, scriptwriting, shot planning, studio or on-site filming, sound, lighting, coaching, editing, captions, covers, and platform-native exports. Every frame is built to hold attention while keeping your brand credible.",
-    heroImg: "/images/generated-hero-studio.png",
+    heroImg: "/images/generated-hero-studio.webp",
     heroAlt: "Professional video production studio for short-form content in Malaysia",
     heroFrames: [
-      { img: "/images/process-04-filming.png", label: "Shoot" },
-      { img: "/images/generated-filming-coaching.png", label: "Coaching" },
-      { img: "/images/process-05-editing.png", label: "Cut" },
+      { img: "/images/process-04-filming.webp", label: "Shoot" },
+      { img: "/images/generated-filming-coaching.webp", label: "Coaching" },
+      { img: "/images/process-05-editing.webp", label: "Cut" },
     ],
     stats: [
       { value: "8B+", label: "Views produced across platforms" },
-      { value: "5,000+", label: "Videos over 100K views" },
+      { value: "500+", label: "Videos over 100K views" },
       { value: "5", label: "Platforms delivered to" },
     ],
     intro: {
@@ -271,12 +271,12 @@ export const servicePages: Record<string, ServicePageConfig> = {
     heroFrames: [
       { img: "/images/case-5.jpg", label: "Voice" },
       { img: "/images/case-14.jpg", label: "Persona" },
-      { img: "/images/generated-strategy-workshop.png", label: "Pillars" },
+      { img: "/images/generated-strategy-workshop.webp", label: "Pillars" },
     ],
     stats: [
-      { value: "960%", label: "Client renewal rate" },
+      { value: "96%", label: "Client renewal rate" },
       { value: "447K", label: "Largest founder following built" },
-      { value: "1,000+", label: "Clients served" },
+      { value: "100+", label: "Clients served" },
     ],
     intro: {
       heading: "Your expertise is the asset. We make it visible.",
@@ -366,7 +366,7 @@ export const servicePages: Record<string, ServicePageConfig> = {
     heroImg: "/images/case-10.jpg",
     heroAlt: "Short video creative prepared for ads boosting and paid social campaigns",
     heroFrames: [
-      { img: "/images/generated-performance-review.png", label: "Data" },
+      { img: "/images/generated-performance-review.webp", label: "Data" },
       { img: "/images/blog-facebook.jpg", label: "Meta" },
       { img: "/images/blog-tiktok.jpg", label: "TikTok" },
     ],

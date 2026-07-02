@@ -5,8 +5,9 @@ import ReelWall from "@/components/ReelWall";
 import { allTiles, reelBrands, reelCategories } from "@/lib/reels";
 
 export const metadata: Metadata = {
-  title: "Portfolio | Yuyu Creative — The Proof Gallery",
-  description: "A blue-and-white portfolio gallery of short-form work by Yuyu Creative, by industry.",
+  title: "Short Video Portfolio | Yuyu Creative Malaysia",
+  description:
+    "Browse Yuyu Creative's short video portfolio — real client reels across healthcare, beauty, automotive, home, pet, finance, and lifestyle. Proof of strategy-led work that performs.",
 };
 
 export default function PortfolioPage() {

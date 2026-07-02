@@ -74,16 +74,16 @@ export const uiEn = {
 };
 
 export const stats = [
-  { value: "8000M+", label: "Total views across platforms" },
+  { value: "8B+", label: "Total views across platforms" },
   { value: "400M+", label: "Highest total views in one month" },
-  { value: "5000+", label: "Videos exceeding 100K views" },
-  { value: "1000+", label: "Clients served" },
+  { value: "500+", label: "Videos exceeding 100K views" },
+  { value: "100+", label: "Clients served" },
 ];
 
 export const aboutStats = [
-  { value: "960%", label: "Client Renewal Rate" },
-  { value: "5000+", label: "Videos Exceeding 100K Views" },
-  { value: "1000+", label: "Clients Served" },
+  { value: "96%", label: "Client Renewal Rate" },
+  { value: "500+", label: "Videos Exceeding 100K Views" },
+  { value: "100+", label: "Clients Served" },
 ];
 
 export const clients = [
@@ -265,9 +265,9 @@ export const wallReels = [
 
 export const ribbonItems = [
   "8 Billion+ Views",
-  "1,000+ Clients",
-  "960% Renewal Rate",
-  "5,000+ Viral Videos",
+  "100+ Clients",
+  "96% Renewal Rate",
+  "500+ Viral Videos",
   "5 Platforms",
   "Strategy First",
 ];
@@ -359,7 +359,7 @@ export const process = [
     brief: "Audience, angle & direction",
     title: "Lock your identity & direction",
     desc: "We study your brand, audience, and goals, then set a clear on-screen identity and channel direction that draws the right people in.",
-    img: "/images/process-01-discovery.png",
+    img: "/images/process-01-discovery.webp",
   },
   {
     step: "02",
@@ -367,7 +367,7 @@ export const process = [
     brief: "Pillars and scripts",
     title: "Plan the strategy & scripts",
     desc: "That direction becomes content pillars and scripts built around your business — watchable, shareable, and never generic templates.",
-    img: "/images/process-03-planning.png",
+    img: "/images/process-03-planning.webp",
   },
   {
     step: "03",
@@ -375,7 +375,7 @@ export const process = [
     brief: "Coached on camera",
     title: "Film with on-camera coaching",
     desc: "We direct the shoot so it feels natural, not stiff — polished footage that still sounds and looks unmistakably like you.",
-    img: "/images/process-04-filming.png",
+    img: "/images/process-04-filming.webp",
   },
   {
     step: "04",
@@ -383,7 +383,7 @@ export const process = [
     brief: "Cut for retention",
     title: "Edit for retention",
     desc: "We cut for attention: tight pacing, strong hooks, and platform-ready captions that hold viewers to the final second.",
-    img: "/images/process-05-editing.png",
+    img: "/images/process-05-editing.webp",
   },
   {
     step: "05",
@@ -391,7 +391,7 @@ export const process = [
     brief: "Track and improve",
     title: "Track, learn & improve",
     desc: "Once live, we read the numbers and hand you clear recommendations each month so every batch outperforms the last.",
-    img: "/images/process-06-publishing.png",
+    img: "/images/process-06-publishing.webp",
   },
 ];
 
