@@ -128,10 +128,10 @@ export default function ReelWall({ locale = "en" }: { locale?: "en" | "zh" }) {
             aria-label={t.openReel(tile.brand.name)}
           >
             {tile.video ? (
-              <video src={tile.video} poster={tile.cover} muted loop playsInline preload="none" tabIndex={-1} />
+              <video src={tile.video} poster={tile.cover} width={1080} height={1920} muted loop playsInline preload="none" tabIndex={-1} />
             ) : (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={tile.cover} alt={tile.brand.name} loading="lazy" decoding="async" />
+              <img src={tile.cover} alt={tile.brand.name} width={1080} height={1920} loading="lazy" decoding="async" />
             )}
             <span className="rw-tile-views">{compact(tile.views)}</span>
             {tile.highlight && <span className="rw-tile-star">★</span>}

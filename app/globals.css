@@ -11322,7 +11322,7 @@ img { max-width: 100%; display: block; }
   border-radius:14px;overflow:hidden;cursor:pointer;background:#0d1a3a;
   box-shadow:0 8px 22px rgba(0,0,0,.35);transition:transform .3s var(--ease),box-shadow .3s,outline-color .3s;
   outline:2px solid transparent;outline-offset:0}
-.rw-tile img,.rw-tile video{width:100%;aspect-ratio:9/16;object-fit:cover;display:block;background:#0d1a3a;transition:transform .5s var(--ease)}
+.rw-tile img,.rw-tile video{width:100%;height:auto;aspect-ratio:9/16;object-fit:cover;display:block;background:#0d1a3a;transition:transform .5s var(--ease)}
 .rw-tile:hover{transform:translateY(-4px) scale(1.02);z-index:3;outline-color:var(--acc,#7db0ff);
   box-shadow:0 26px 60px rgba(0,0,0,.55)}
 .rw-tile:hover img,.rw-tile:hover video{transform:scale(1.06)}
