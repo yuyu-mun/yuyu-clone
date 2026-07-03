@@ -32,7 +32,7 @@ function Frame({
         muted
         loop
         playsInline
-        preload="none"
+        preload={active ? "auto" : "none"}
       />
       <button
         type="button"
@@ -60,28 +60,16 @@ function Frame({
 
 export default function BrandFilm() {
   const stageRef = useRef<HTMLDivElement | null>(null);
-  // Only attach the video source once the stage nears the viewport, so the
-  // brand film never downloads during the initial landing-page paint.
+  // The brand film is the marquee moment right after the hero, so it should be
+  // the second thing the page loads — not gated behind a scroll. We attach the
+  // source as soon as the component mounts (i.e. after the hero has painted and
+  // the app has hydrated), so the video begins fetching ahead of everything
+  // below it while still letting the high-priority hero image win the first
+  // byte of bandwidth.
   const [active, setActive] = useState(false);
 
   useEffect(() => {
-    const stage = stageRef.current;
-    if (!stage) return;
-    if (typeof IntersectionObserver === "undefined") {
-      setActive(true);
-      return;
-    }
-    const io = new IntersectionObserver(
-      (entries) => {
-        if (entries.some((e) => e.isIntersecting)) {
-          setActive(true);
-          io.disconnect();
-        }
-      },
-      { rootMargin: "600px 0px" }
-    );
-    io.observe(stage);
-    return () => io.disconnect();
+    setActive(true);
   }, []);
 
   return (
