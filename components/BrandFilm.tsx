@@ -67,9 +67,18 @@ export default function BrandFilm() {
   // below it while still letting the high-priority hero image win the first
   // byte of bandwidth.
   const [active, setActive] = useState(false);
+  // Only one frame is ever visible: portrait below 640px, landscape above (see
+  // the .ref-film-* rules in globals.css). Track the breakpoint so we attach a
+  // source to the matching frame only — otherwise both variants download.
+  const [isMobile, setIsMobile] = useState<boolean | null>(null);
 
   useEffect(() => {
     setActive(true);
+    const mq = window.matchMedia("(max-width: 640px)");
+    setIsMobile(mq.matches);
+    const onChange = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
   }, []);
 
   return (
@@ -77,12 +86,12 @@ export default function BrandFilm() {
       <Frame
         className="ref-film-landscape"
         src="/videos/brand-film-desktop.mp4"
-        active={active}
+        active={active && isMobile === false}
       />
       <Frame
         className="ref-film-portrait"
         src="/videos/brand-film-mobile.mp4"
-        active={active}
+        active={active && isMobile === true}
       />
     </div>
   );
