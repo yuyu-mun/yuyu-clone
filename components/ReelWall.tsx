@@ -185,7 +185,6 @@ export default function ReelWall({ locale = "en" }: { locale?: "en" | "zh" }) {
               <img src={tile.cover} alt={tile.brand.name} width={1080} height={1920} loading="lazy" decoding="async" />
             )}
             <span className="rw-tile-views">{compact(tile.views)}</span>
-            {tile.highlight && <span className="rw-tile-star">★</span>}
             <span className="rw-tile-meta">
               <strong>{tile.brand.name}</strong>
               <em>
@@ -203,7 +202,17 @@ export default function ReelWall({ locale = "en" }: { locale?: "en" | "zh" }) {
             className="rw-more-btn"
             onClick={() => setLimit((l) => l + perPage)}
           >
-            {t.showMore} <span>+{Math.min(perPage, remaining)}</span>
+            {t.showMore}
+            <svg viewBox="0 0 24 24" aria-hidden>
+              <path
+                d="M6 9l6 6 6-6"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
           </button>
         </div>
       )}

@@ -6,7 +6,7 @@ export type ReelBrand = {
   views: number; followers: number; igUrl: string; reels: Reel[];
 };
 export type ReelCategory = { slug: string; label: string };
-export type ReelTile = Reel & { brand: ReelBrand; highlight: boolean };
+export type ReelTile = Reel & { brand: ReelBrand };
 
 export const reelCategories: ReelCategory[] = [
   { slug: "healthcare", label: "Healthcare" },
@@ -517,8 +517,15 @@ export const reelBrands: ReelBrand[] = [
 
 export function allTiles(brands: ReelBrand[] = reelBrands): ReelTile[] {
   const tiles: ReelTile[] = [];
-  for (const brand of brands) {
-    brand.reels.forEach((reel, i) => tiles.push({ ...reel, brand, highlight: i === 0 }));
+  // Round-robin by brand — one reel from each brand per pass — so neighbouring
+  // tiles (and therefore each "show more" page) are always from different
+  // creators instead of clustering one author's reels together.
+  const maxReels = brands.reduce((m, b) => Math.max(m, b.reels.length), 0);
+  for (let i = 0; i < maxReels; i++) {
+    for (const brand of brands) {
+      const reel = brand.reels[i];
+      if (reel) tiles.push({ ...reel, brand });
+    }
   }
   return tiles;
 }
