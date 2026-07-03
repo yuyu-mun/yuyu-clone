@@ -12322,6 +12322,22 @@ img { max-width: 100%; display: block; }
     linear-gradient(180deg, #f5f8ff 0%, #ffffff 42%, #eef4ff 100%);
 }
 
+/* Show-more band belongs to the (light) mosaic above, not the dark footer. */
+.rw-more {
+  background: #eef4ff;
+}
+.rw-more-btn {
+  background: #ffffff;
+  border-color: rgba(7,94,255,0.22);
+  color: #075eff;
+  box-shadow: 0 10px 24px rgba(7,94,255,0.10);
+}
+.rw-more-btn:hover {
+  background: #075eff;
+  border-color: #075eff;
+  color: #fff;
+}
+
 .rw-tile {
   background: #dfe9ff;
   box-shadow: 0 12px 30px rgba(15,58,145,0.14);
