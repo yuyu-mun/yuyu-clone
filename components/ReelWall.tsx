@@ -79,6 +79,7 @@ export default function ReelWall({ locale = "en" }: { locale?: "en" | "zh" }) {
   // Grows by one page (a block of full rows) on "show more".
   const [limit, setLimit] = useState(() => pageForCols(DEFAULT_COLS));
   const mosaicRef = useRef<HTMLDivElement | null>(null);
+  const moreRef = useRef<HTMLDivElement | null>(null);
 
   const perPage = pageForCols(cols);
   const tiles = allTiles(reelBrands).filter((t) => active === ALL || t.brand.category === active);
@@ -126,6 +127,27 @@ export default function ReelWall({ locale = "en" }: { locale?: "en" | "zh" }) {
     root.querySelectorAll("video").forEach((v) => io.observe(v));
     return () => io.disconnect();
   }, [active, limit]);
+
+  // As the viewer approaches the "show more" button, warm the NEXT page's cover
+  // images so the reveal is instant on click. Covers are cheap (webp) — the
+  // heavier videos still lazy-load once revealed and near the viewport.
+  useEffect(() => {
+    const el = moreRef.current;
+    if (!el || remaining <= 0 || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((e) => e.isIntersecting)) return;
+        tiles.slice(limit, limit + perPage).forEach((t) => {
+          const img = new Image();
+          img.src = t.cover;
+        });
+        io.disconnect();
+      },
+      { rootMargin: "600px 0px" }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [active, limit, perPage, tiles, remaining]);
 
   return (
     <>
@@ -196,7 +218,7 @@ export default function ReelWall({ locale = "en" }: { locale?: "en" | "zh" }) {
       </div>
 
       {remaining > 0 && (
-        <div className="rw-more">
+        <div className="rw-more" ref={moreRef}>
           <button
             type="button"
             className="rw-more-btn"
