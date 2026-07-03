@@ -6,6 +6,15 @@ import { useEffect, useMemo, useRef, useState } from "react";
 const LAT_MIN = -68;
 const LAT_MAX = 68;
 
+// Live <video> tiles all draw from this many distinct mp4 files, repeated across
+// the front arc. Browsers cache and share these few streams instead of fetching
+// a different clip per tile, so the front stays lively while the network/decode
+// cost is bounded to a small, reused pool.
+const VIDEO_CLIP_POOL = 5;
+// How far (deg) either side of dead-center still counts as front-facing. Tiles
+// past this are on the reverse of the sphere and are never mounted.
+const FRONT_ARC = 100;
+
 type GalleryMedia = {
   src: string;
   poster?: string;
@@ -40,17 +49,16 @@ export default function DomeGallery({
   const router = useRouter();
   const sceneRef = useRef<HTMLDivElement | null>(null);
   const stageRef = useRef<HTMLDivElement | null>(null);
-  const rot = useRef(0); // horizontal rotation only
-  const vel = useRef(0.03);
-  const drag = useRef<number | null>(null);
-  const start = useRef({ x: 0, y: 0 });
-  const moved = useRef(false);
+  const rot = useRef(0); // horizontal rotation only (auto-spin; not draggable)
   const visible = useRef(false); // is the dome on screen? gates rotation + playback
   const [dim, setDim] = useState({ radius: 740, cols: 42, rows: 10, tileScale: 0.88, live: 16 });
   // Which tile indices are currently live <video> tiles. Recomputed as the dome
   // rotates so it always tracks the front-facing arc (the only tiles the eye can
   // actually see); everything else renders as its poster image.
   const [liveKeys, setLiveKeys] = useState<Set<number>>(new Set());
+  // Which tile indices are currently on the front hemisphere and therefore
+  // mounted at all. Back-of-sphere tiles are omitted from the DOM entirely.
+  const [renderKeys, setRenderKeys] = useState<Set<number>>(new Set());
   const [ready, setReady] = useState(false);
   // The dome is a heavy, below-the-fold section (dozens of reel videos + poster
   // images). We don't mount any of that media until the scene scrolls near the
@@ -140,6 +148,14 @@ export default function DomeGallery({
     [tiles]
   );
 
+  // The small set of distinct clips every live video reuses. Each live tile
+  // picks one by index, so adjacent front tiles still differ, but only a handful
+  // of unique mp4 files are ever fetched and decoded.
+  const clips = useMemo(
+    () => media.filter((m) => m.src.endsWith(".mp4")).slice(0, VIDEO_CLIP_POOL),
+    [media]
+  );
+
   const isLive = (i: number) => liveKeys.has(i);
 
   // Ramp the live-video budget up gradually once the scene is active. Two
@@ -206,10 +222,7 @@ export default function DomeGallery({
     const tick = () => {
       // Skip all rotation work while the dome is scrolled out of view.
       if (visible.current) {
-        if (drag.current == null) {
-          vel.current += (0.03 - vel.current) * 0.04;
-          rot.current += vel.current;
-        }
+        rot.current += 0.03;
         apply();
       }
       raf = requestAnimationFrame(tick);
@@ -217,6 +230,41 @@ export default function DomeGallery({
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
   }, [radius, ready]);
+
+  // Cull the back of the sphere: only tiles whose face is within the front
+  // hemisphere are mounted at all — nothing on the reverse side is rendered or
+  // decoded. Polled with the same rotation-delta guard as the live-set, so it's
+  // near-free while idle. A tile's angle from dead-center is (lon + rotation).
+  useEffect(() => {
+    if (!active) return;
+    const norm = (a: number) => {
+      const x = ((a % 360) + 360) % 360;
+      return x > 180 ? x - 360 : x;
+    };
+    let lastRot = Number.NaN;
+    const recompute = () => {
+      const rotNow = rot.current;
+      if (!Number.isNaN(lastRot) && Math.abs(rotNow - lastRot) < 2.5) return;
+      lastRot = rotNow;
+      setRenderKeys((prev) => {
+        const next = new Set<number>();
+        tiles.forEach((t, i) => {
+          if (Math.abs(norm(t.lon + rotNow)) <= FRONT_ARC) next.add(i);
+        });
+        if (next.size === prev.size) {
+          let same = true;
+          next.forEach((x) => {
+            if (!prev.has(x)) same = false;
+          });
+          if (same) return prev;
+        }
+        return next;
+      });
+    };
+    recompute();
+    const id = window.setInterval(recompute, 180);
+    return () => window.clearInterval(id);
+  }, [active, tiles]);
 
   // Follow the front arc: promote the `live` mp4 tiles closest to the camera to
   // real <video>s and demote the rest back to posters. A tile's angle from the
@@ -266,30 +314,8 @@ export default function DomeGallery({
     return () => window.clearInterval(id);
   }, [active, videoTiles, liveBudget]);
 
-  // horizontal drag only; a press without movement counts as a click
-  const onDown = (e: React.PointerEvent) => {
-    drag.current = e.clientX;
-    start.current = { x: e.clientX, y: e.clientY };
-    moved.current = false;
-    (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
-  };
-  const onMove = (e: React.PointerEvent) => {
-    if (drag.current == null) return;
-    const dx = e.clientX - drag.current;
-    drag.current = e.clientX;
-    rot.current += dx * 0.18;
-    vel.current = dx * 0.04;
-    if (Math.hypot(e.clientX - start.current.x, e.clientY - start.current.y) > 6) {
-      moved.current = true;
-    }
-  };
-  const onUp = (e: React.PointerEvent) => {
-    drag.current = null;
-    (e.target as HTMLElement).releasePointerCapture?.(e.pointerId);
-  };
-  const onClick = () => {
-    if (!moved.current) router.push(href);
-  };
+  // Not draggable — the dome auto-spins and a click just opens the portfolio.
+  const onClick = () => router.push(href);
 
   return (
     <div className={`dome-scene${ready ? " is-ready" : ""}`} ref={sceneRef}>
@@ -299,47 +325,51 @@ export default function DomeGallery({
         <div
           className="dome-stage"
           ref={stageRef}
-          onPointerDown={onDown}
-          onPointerMove={onMove}
-          onPointerUp={onUp}
-          onPointerLeave={onUp}
           onClick={onClick}
           style={{ transform: `translateZ(${-radius}px) rotateY(${rot.current.toFixed(2)}deg)` }}
         >
-          {active && tiles.map((t, i) => (
-            <div
-              key={i}
-              className="dome-tile"
-              style={{
-                width: `${tileW.toFixed(1)}px`,
-                height: `${tileH.toFixed(1)}px`,
-                marginLeft: `${(-tileW / 2).toFixed(1)}px`,
-                marginTop: `${(-tileH / 2).toFixed(1)}px`,
-                transform: `rotateY(${t.lon}deg) rotateX(${-t.lat}deg) translateZ(${radius}px)`,
-              }}
-            >
-              {isLive(i) && t.media.src.endsWith(".mp4") ? (
-                <video
-                  src={t.media.src}
-                  poster={t.media.poster}
-                  aria-label={t.media.alt}
-                  muted
-                  autoPlay
-                  loop
-                  playsInline
-                  preload="none"
-                />
-              ) : (
-                <img
-                  src={t.media.poster || t.media.src}
-                  alt={t.media.alt || ""}
-                  draggable={false}
-                  loading="lazy"
-                  decoding="async"
-                />
-              )}
-            </div>
-          ))}
+          {active &&
+            tiles.map((t, i) => {
+              // Skip anything on the reverse of the sphere entirely.
+              if (!renderKeys.has(i)) return null;
+              // Live tiles reuse one of the few shared clips; the poster stays
+              // the tile's own so there's no swap when the video mounts.
+              const clip = clips.length ? clips[i % clips.length] : t.media;
+              return (
+                <div
+                  key={i}
+                  className="dome-tile"
+                  style={{
+                    width: `${tileW.toFixed(1)}px`,
+                    height: `${tileH.toFixed(1)}px`,
+                    marginLeft: `${(-tileW / 2).toFixed(1)}px`,
+                    marginTop: `${(-tileH / 2).toFixed(1)}px`,
+                    transform: `rotateY(${t.lon}deg) rotateX(${-t.lat}deg) translateZ(${radius}px)`,
+                  }}
+                >
+                  {isLive(i) && t.media.src.endsWith(".mp4") ? (
+                    <video
+                      src={clip.src}
+                      poster={t.media.poster}
+                      aria-label={t.media.alt}
+                      muted
+                      autoPlay
+                      loop
+                      playsInline
+                      preload="none"
+                    />
+                  ) : (
+                    <img
+                      src={t.media.poster || t.media.src}
+                      alt={t.media.alt || ""}
+                      draggable={false}
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  )}
+                </div>
+              );
+            })}
         </div>
       </div>
     </div>

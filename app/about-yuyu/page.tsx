@@ -215,12 +215,12 @@ export default function AboutPage() {
           <div className="about-avatar-cloud" aria-hidden="true">
             <Image className="about-avatar about-avatar-one" src="/images/about-avatar-1.webp" alt="" width={280} height={280} priority />
             <Image className="about-avatar about-avatar-two" src="/images/about-avatar-2.webp" alt="" width={250} height={250} priority />
-            <Image className="about-avatar about-avatar-three" src="/images/about-avatar-3.webp" alt="" width={235} height={235} />
-            <Image className="about-avatar about-avatar-four" src="/images/about-avatar-4.webp" alt="" width={220} height={220} />
-            <Image className="about-avatar about-avatar-five" src="/images/about-avatar-5.webp" alt="" width={220} height={220} />
-            <Image className="about-avatar about-avatar-six" src="/images/about-avatar-6.webp" alt="" width={210} height={210} />
-            <Image className="about-avatar about-avatar-seven" src="/images/about-avatar-7.webp" alt="" width={205} height={205} />
-            <Image className="about-avatar about-avatar-eight" src="/images/about-avatar-8.webp" alt="" width={220} height={220} />
+            <Image className="about-avatar about-avatar-three" src="/images/about-avatar-3.webp" alt="" width={235} height={235} priority />
+            <Image className="about-avatar about-avatar-four" src="/images/about-avatar-4.webp" alt="" width={220} height={220} priority />
+            <Image className="about-avatar about-avatar-five" src="/images/about-avatar-5.webp" alt="" width={220} height={220} priority />
+            <Image className="about-avatar about-avatar-six" src="/images/about-avatar-6.webp" alt="" width={210} height={210} priority />
+            <Image className="about-avatar about-avatar-seven" src="/images/about-avatar-7.webp" alt="" width={205} height={205} priority />
+            <Image className="about-avatar about-avatar-eight" src="/images/about-avatar-8.webp" alt="" width={220} height={220} priority />
           </div>
           <div className="ref-shell about-studio-stage">
             <Reveal className="about-studio-copy">

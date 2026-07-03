@@ -11,6 +11,12 @@ import {
 
 const ALL = "all";
 
+// How many reels render before the viewer asks for more. Kept small so the
+// initial paint mounts a handful of tiles (and their lazy videos) instead of
+// the entire ~200-clip wall. Each "show more" reveals another page of this size.
+const PER_PAGE_DESKTOP = 15;
+const PER_PAGE_MOBILE = 10;
+
 // Traditional Chinese (Taiwan) labels for the industry filter chips.
 const zhCategories: Record<string, string> = {
   healthcare: "醫療保健",
@@ -30,6 +36,7 @@ const wallStrings = {
     followers: "followers",
     openReel: (name: string) => `Open ${name} reel on Instagram`,
     category: (slug: string, label: string) => label,
+    showMore: "Show more",
   },
   zh: {
     all: "全部",
@@ -38,16 +45,40 @@ const wallStrings = {
     followers: "粉絲",
     openReel: (name: string) => `在 Instagram 開啟 ${name} 的影片`,
     category: (slug: string, label: string) => zhCategories[slug] ?? label,
+    showMore: "顯示更多",
   },
 };
 
 export default function ReelWall({ locale = "en" }: { locale?: "en" | "zh" }) {
   const t = wallStrings[locale];
   const [active, setActive] = useState(ALL);
+  // Page size follows the viewport (fewer tiles on phones). Defaults to desktop
+  // so the server render and first client render agree; a media-query effect
+  // corrects it to mobile after mount.
+  const [perPage, setPerPage] = useState(PER_PAGE_DESKTOP);
+  // How many tiles are currently rendered. Grows by `perPage` on "show more".
+  const [limit, setLimit] = useState(PER_PAGE_DESKTOP);
   const mosaicRef = useRef<HTMLDivElement | null>(null);
 
   const tiles = allTiles(reelBrands).filter((t) => active === ALL || t.brand.category === active);
   const total = allTiles(reelBrands).length;
+  const visibleTiles = tiles.slice(0, limit);
+  const remaining = tiles.length - visibleTiles.length;
+
+  // Track the viewport so phones start with the smaller page size.
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 760px)");
+    const apply = () => setPerPage(mq.matches ? PER_PAGE_MOBILE : PER_PAGE_DESKTOP);
+    apply();
+    mq.addEventListener("change", apply);
+    return () => mq.removeEventListener("change", apply);
+  }, []);
+
+  // Reset back to a single page whenever the filter or page size changes, so a
+  // new category (or a resize across the breakpoint) starts collapsed again.
+  useEffect(() => {
+    setLimit(perPage);
+  }, [active, perPage]);
 
   // Reels ship with preload="none" so an off-screen mosaic never fetches video.
   // But that makes the first hover laggy — the clip has to download before it
@@ -74,7 +105,7 @@ export default function ReelWall({ locale = "en" }: { locale?: "en" | "zh" }) {
     );
     root.querySelectorAll("video").forEach((v) => io.observe(v));
     return () => io.disconnect();
-  }, [active]);
+  }, [active, limit]);
 
   return (
     <>
@@ -106,7 +137,7 @@ export default function ReelWall({ locale = "en" }: { locale?: "en" | "zh" }) {
       </div>
 
       <div className="rw-mosaic" ref={mosaicRef}>
-        {tiles.map((tile) => (
+        {visibleTiles.map((tile) => (
           <a
             key={`${tile.brand.handle}-${tile.code}`}
             className="rw-tile"
@@ -144,6 +175,18 @@ export default function ReelWall({ locale = "en" }: { locale?: "en" | "zh" }) {
           </a>
         ))}
       </div>
+
+      {remaining > 0 && (
+        <div className="rw-more">
+          <button
+            type="button"
+            className="rw-more-btn"
+            onClick={() => setLimit((l) => l + perPage)}
+          >
+            {t.showMore} <span>+{Math.min(perPage, remaining)}</span>
+          </button>
+        </div>
+      )}
     </>
   );
 }
