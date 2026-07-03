@@ -11,11 +11,31 @@ import {
 
 const ALL = "all";
 
-// How many reels render before the viewer asks for more. Kept small so the
-// initial paint mounts a handful of tiles (and their lazy videos) instead of
-// the entire ~200-clip wall. Each "show more" reveals another page of this size.
-const PER_PAGE_DESKTOP = 15;
-const PER_PAGE_MOBILE = 10;
+// The mosaic is a CSS multi-column layout, so a page must be a whole number of
+// ROWS (columns × rows). Capping at an arbitrary tile count that isn't a
+// multiple of the column count makes the browser balance the columns unevenly
+// and leaves a ragged, half-empty bottom — that big white gap. So we detect the
+// live column count (mirroring the .rw-mosaic breakpoints in globals.css) and
+// round a rough per-page target up to fill complete rows.
+const TARGET_DESKTOP = 15;
+const TARGET_MOBILE = 10;
+const DEFAULT_COLS = 6; // widest breakpoint; also the SSR assumption
+
+function columnsForViewport() {
+  if (typeof window === "undefined") return DEFAULT_COLS;
+  const m = (q: string) => window.matchMedia(q).matches;
+  if (m("(max-width: 460px)")) return 2;
+  if (m("(max-width: 760px)")) return 3;
+  if (m("(max-width: 980px)")) return 4;
+  if (m("(max-width: 1200px)")) return 5;
+  return 6;
+}
+
+// Round a target count up to the next full row for the given column count.
+function pageForCols(cols: number) {
+  const target = cols <= 3 ? TARGET_MOBILE : TARGET_DESKTOP;
+  return Math.ceil(target / cols) * cols;
+}
 
 // Traditional Chinese (Taiwan) labels for the industry filter chips.
 const zhCategories: Record<string, string> = {
@@ -52,30 +72,30 @@ const wallStrings = {
 export default function ReelWall({ locale = "en" }: { locale?: "en" | "zh" }) {
   const t = wallStrings[locale];
   const [active, setActive] = useState(ALL);
-  // Page size follows the viewport (fewer tiles on phones). Defaults to desktop
-  // so the server render and first client render agree; a media-query effect
-  // corrects it to mobile after mount.
-  const [perPage, setPerPage] = useState(PER_PAGE_DESKTOP);
-  // How many tiles are currently rendered. Grows by `perPage` on "show more".
-  const [limit, setLimit] = useState(PER_PAGE_DESKTOP);
+  // Live column count of the mosaic. Defaults to the widest breakpoint so the
+  // server render and first client render agree; a resize effect corrects it.
+  const [cols, setCols] = useState(DEFAULT_COLS);
+  // How many tiles are currently rendered — always a whole number of rows.
+  // Grows by one page (a block of full rows) on "show more".
+  const [limit, setLimit] = useState(() => pageForCols(DEFAULT_COLS));
   const mosaicRef = useRef<HTMLDivElement | null>(null);
 
+  const perPage = pageForCols(cols);
   const tiles = allTiles(reelBrands).filter((t) => active === ALL || t.brand.category === active);
   const total = allTiles(reelBrands).length;
   const visibleTiles = tiles.slice(0, limit);
   const remaining = tiles.length - visibleTiles.length;
 
-  // Track the viewport so phones start with the smaller page size.
+  // Track the live column count so a page is always complete rows.
   useEffect(() => {
-    const mq = window.matchMedia("(max-width: 760px)");
-    const apply = () => setPerPage(mq.matches ? PER_PAGE_MOBILE : PER_PAGE_DESKTOP);
+    const apply = () => setCols(columnsForViewport());
     apply();
-    mq.addEventListener("change", apply);
-    return () => mq.removeEventListener("change", apply);
+    window.addEventListener("resize", apply);
+    return () => window.removeEventListener("resize", apply);
   }, []);
 
-  // Reset back to a single page whenever the filter or page size changes, so a
-  // new category (or a resize across the breakpoint) starts collapsed again.
+  // Reset back to a single page whenever the filter or column count changes, so
+  // a new category (or a resize across a breakpoint) starts collapsed and even.
   useEffect(() => {
     setLimit(perPage);
   }, [active, perPage]);

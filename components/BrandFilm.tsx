@@ -4,12 +4,10 @@ import { useEffect, useRef, useState } from "react";
 
 function Frame({
   src,
-  poster,
   className,
   active,
 }: {
   src: string;
-  poster: string;
   className: string;
   active: boolean;
 }) {
@@ -30,7 +28,6 @@ function Frame({
       <video
         ref={videoRef}
         src={active ? src : undefined}
-        poster={poster}
         autoPlay
         muted
         loop
@@ -92,13 +89,11 @@ export default function BrandFilm() {
       <Frame
         className="ref-film-landscape"
         src="/videos/brand-film-desktop.mp4"
-        poster="/images/brand-film-poster.jpg"
         active={active}
       />
       <Frame
         className="ref-film-portrait"
         src="/videos/brand-film-mobile.mp4"
-        poster="/images/brand-film-poster-mobile.jpg"
         active={active}
       />
     </div>

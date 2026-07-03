@@ -1,3 +1,4 @@
+import { preload } from "react-dom";
 import Link from "next/link";
 import BrandFilm from "@/components/BrandFilm";
 import CtaBand from "@/components/CtaBand";
@@ -89,6 +90,11 @@ function Stars() {
 }
 
 export default function HomePage() {
+  // Preload the hero image so it's the very first fetch — emitted into <head>
+  // during HTML streaming, ahead of the render-blocking CSS and everything
+  // below the fold, so the hero paints first.
+  preload(heroImage, { as: "image", fetchPriority: "high" });
+
   return (
     <>
       <section className="ref-hero">
